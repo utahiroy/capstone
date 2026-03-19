@@ -70,7 +70,7 @@ These variables count people **currently residing** in a state who moved **from 
 | 55-64 | 55-59, 60-64 | B07001_076E, B07001_077E | Sum |
 | 65+ | 65-69, 70-74, 75+ | B07001_078E, B07001_079E, B07001_080E | Sum |
 
-**Status**: needs review — variable codes are based on the standard B07001 structure. Must be verified against `https://api.census.gov/data/2024/acs/acs1/groups/B07001.json` at implementation time.
+**Status**: **confirmed** — variable codes verified against Census Reporter metadata (ACS 2022 1-year; structure is identical across ACS vintages).
 
 ### 1.4 OUT_COUNT variable mapping (from B07401 "Different state" block)
 
@@ -84,7 +84,7 @@ B07401 has the same structure as B07001 but from the perspective of the **state 
 | 55-64 | 55-59, 60-64 | B07401_076E, B07401_077E | Sum |
 | 65+ | 65-69, 70-74, 75+ | B07401_078E, B07401_079E, B07401_080E | Sum |
 
-**Status**: needs review — same caveat as B07001. Must be verified against the B07401 group definition.
+**Status**: **confirmed** — variable codes verified. Note: B07401 has 80 variables (no "Moved from abroad" category, as it tracks the previous-residence perspective).
 
 ### 1.5 Age-group population denominator
 
@@ -102,7 +102,7 @@ B07401 has the same structure as B07001 but from the perspective of the **state 
 
 **Rationale**: Using B07001 Total ensures that the denominator comes from the same universe (population 1 year and over) as the migration numerators. This avoids denominator-numerator mismatch.
 
-**Status**: needs review — verify variable codes match the "Total" block offsets.
+**Status**: **confirmed** — variable codes verified against Census Reporter metadata.
 
 ### 1.6 DV formulas
 
@@ -522,6 +522,9 @@ BA_PLUS = 100 * (B15003_022E + B15003_023E + B15003_024E + B15003_025E) / B15003
 | 9 | PRIV_ESTAB | BLS QCEW 2024 |
 | 10 | PRIV_AVG_PAY | BLS QCEW 2024 (derived) |
 | 11 | PERMITS | Census BPS 2024 |
+| DV | IN_COUNT (all age groups) | ACS B07001 "Different state" block — verified |
+| DV | OUT_COUNT (all age groups) | ACS B07401 "Different state" block — verified |
+| DV | POP_AGE denominator | ACS B07001 "Total" block — verified |
 | 12 | MED_RENT | ACS B25064 |
 | 13 | MED_HOMEVAL | ACS B25077 |
 | 15 | VACANCY_RATE | ACS B25004 + B25003 |
@@ -532,8 +535,6 @@ BA_PLUS = 100 * (B15003_022E + B15003_023E + B15003_024E + B15003_025E) / B15003
 
 | # | Variable | Issue |
 |---|---|---|
-| DV | Migration IN/OUT/NET | B07001/B07401 variable codes must be verified against API group definitions |
-| DV | POP_AGE denominator | B07001 Total block codes must be verified |
 | 1 | POP | Census PEP 2024 API endpoint/variable name needs verification |
 | 5 | RPP | May lag — 2024 may not be available |
 | 6 | REAL_PCPI | May lag — 2024 may not be available |
