@@ -202,7 +202,7 @@ This source is **not** used for the main age-group DVs.
 | Variable | All-items RPP index (US = 100) |
 | Unit | index (US = 100) |
 | Formula | direct read |
-| Status | **needs review** — RPP data typically lags ~18 months. 2024 RPP may not be available. If unavailable, latest available year (likely 2023) would need to be used. This would require explicit approval per CLAUDE.md escalation policy. |
+| Status | **confirmed** — 2024 RPP released February 2026. BEA discontinued MSA-level RPP but state-level continues. |
 
 ---
 
@@ -218,7 +218,7 @@ This source is **not** used for the main age-group DVs.
 | Variable | Real per capita personal income (chained dollars) |
 | Unit | dollars |
 | Formula | direct read |
-| Status | **needs review** — same lag concern as RPP. Verify 2024 availability at implementation. |
+| Status | **confirmed** — 2024 data released February 2026 alongside RPP. LineCode for real per capita PI needs runtime discovery via BEA GetParameterValuesFiltered. |
 
 ---
 
@@ -230,7 +230,7 @@ This source is **not** used for the main age-group DVs.
 | Description | Annual average unemployment rate, 2024 |
 | Source | BLS Local Area Unemployment Statistics (LAUS) |
 | URL | https://www.bls.gov/lau/lastrk24.htm |
-| Alternative | BLS API series LASST{FIPS}0000000000003 (unemployment rate) per state |
+| Alternative | BLS API v2: series ID `LAUST{FIPS}0000000000003` (not seasonally adjusted, unemployment rate). Annual average = period M13. Up to 50 series per request. |
 | Access | HTML table parse or BLS API |
 | Unit | percent |
 | Formula | direct read |
@@ -244,11 +244,13 @@ This source is **not** used for the main age-group DVs.
 |---|---|---|---|
 | Description | Private employment (annual avg) | Private establishments (annual avg) | Average annual pay (private) |
 | Source | BLS QCEW | BLS QCEW | BLS QCEW (derived) |
-| Download | QCEW Annual Averages, single file (CSV zip) | same | same |
-| URL | https://www.bls.gov/cew/downloadable-data-files.htm | same | same |
+| Download | QCEW CSV data slice API (no key required) | same | same |
+| URL | `https://data.bls.gov/cew/data/api/2024/a/industry/10.csv` | same | same |
+| Alt URL | https://www.bls.gov/cew/downloadable-data-files.htm (bulk download) | same | same |
 | Filter: own_code | 5 (private) | 5 (private) | 5 (private) |
 | Filter: industry_code | 10 (total, all industries) | 10 (total, all industries) | 10 (total, all industries) |
 | Filter: area_fips | State-level FIPS (XX000) | same | same |
+| Filter: agglvl_code | 50 (state, total, by ownership) | 50 | 50 |
 | Filter: size_code | 0 (all sizes) | 0 (all sizes) | 0 (all sizes) |
 | Column | annual_avg_emplvl | annual_avg_estabs | total_annual_wages / annual_avg_emplvl |
 | Unit | persons | count | dollars |
@@ -474,7 +476,7 @@ BA_PLUS = 100 * (B15003_022E + B15003_023E + B15003_024E + B15003_025E) / B15003
 | Alternative | EIA API v2: `https://api.eia.gov/v2/electricity/retail-sales/data/?api_key={key}&frequency=annual&data[0]=price&facets[sectorid][]=ALL&facets[stateid][]={ST}&start=2024&end=2024` |
 | Unit | cents per kWh |
 | Formula | direct read |
-| Status | **needs review** — 2024 data availability depends on EIA release schedule. Typically available by mid-2025. Verify at implementation. |
+| Status | **confirmed** — 2024 EIA-861 data available. API endpoint: `/v2/electricity/retail-sales/data/` with facets `sectorid=ALL`, `frequency=annual`. Omit `stateid` facet to get all states. |
 
 ---
 
@@ -486,10 +488,12 @@ BA_PLUS = 100 * (B15003_022E + B15003_023E + B15003_024E + B15003_025E) / B15003
 | Description | Violent crime rate per 100,000 population |
 | Source | FBI Crime Data Explorer (CDE) |
 | URL | https://cde.ucr.cjis.gov/ |
-| API | FBI CDE API: `https://api.usa.gov/crime/fbi/cde/estimate/state/{state_abbr}/violent-crime?from=2024&to=2024&API_KEY={key}` |
+| API | FBI CDE API: `https://api.usa.gov/crime/fbi/sapi/api/estimates/states/{state_abbr}/?api_key={key}` |
+| Alt API key | Free key from https://api.data.gov/signup/ |
+| Fallback | Bulk CSV/Excel download from https://cde.ucr.cjis.gov/LATEST/webapp/#/pages/downloads |
 | Unit | per 100,000 |
-| Formula | direct read (pre-computed rate) |
-| Status | **needs review** — FBI crime data for 2024 may not yet be released (typically lags ~12-18 months). May need to use 2023 or latest available year. This would require approval per escalation policy. |
+| Formula | direct read (pre-computed rate) or compute from counts + population |
+| Status | **needs review** — FBI released 2024 data (95.6% population coverage) but CDE API documentation is incomplete and unreliable. State-level rates may need to be computed from count data. Fallback: bulk download. If API fails, escalate for approval on alternative source (e.g., BJS). |
 
 ---
 
@@ -501,11 +505,14 @@ BA_PLUS = 100 * (B15003_022E + B15003_023E + B15003_024E + B15003_025E) / B15003
 | Description | FEMA National Risk Index, overall composite risk score, state-level |
 | Source | FEMA / OpenFEMA |
 | URL | https://www.fema.gov/about/openfema/data-sets/national-risk-index-data |
-| Access | CSV download from NRI data portal (state-level extract) |
+| Access | CSV download from https://hazards.fema.gov/nri/data-resources |
+| Version | v1.20 (December 2025) — latest available |
 | Variable | RISK_SCORE (composite overall risk) |
 | Unit | index score |
-| Formula | direct read |
-| Status | **needs review** — NRI is not updated annually. The latest available version should be used. This is a semi-static index. Document the exact version used. |
+| Geographic level | **County and tract only** — state-level composite Risk Index is NOT directly provided |
+| State alternative | State-level Expected Annual Loss (EAL) IS provided directly |
+| Formula | Option A: aggregate county RISK_SCORE to state (population-weighted average) — requires methodological decision. Option B: use state-level EAL as proxy — simpler but different construct. |
+| Status | **needs review — METHODOLOGICAL DECISION REQUIRED** — (1) Use county-to-state aggregation of RISK_SCORE (what aggregation method?), or (2) substitute state-level EAL as the variable. This changes the variable definition and requires explicit approval. |
 
 ---
 
@@ -515,32 +522,38 @@ BA_PLUS = 100 * (B15003_022E + B15003_023E + B15003_024E + B15003_025E) / B15003
 
 | # | Variable | Source |
 |---|---|---|
-| 3 | LAND_AREA | Census state area reference (static) |
-| 4 | POP_DENS | Derived (POP / LAND_AREA) |
-| 7 | UNEMP | BLS LAUS 2024 |
-| 8 | PRIV_EMP | BLS QCEW 2024 |
-| 9 | PRIV_ESTAB | BLS QCEW 2024 |
-| 10 | PRIV_AVG_PAY | BLS QCEW 2024 (derived) |
-| 11 | PERMITS | Census BPS 2024 |
 | DV | IN_COUNT (all age groups) | ACS B07001 "Different state" block — verified |
 | DV | OUT_COUNT (all age groups) | ACS B07401 "Different state" block — verified |
 | DV | POP_AGE denominator | ACS B07001 "Total" block — verified |
-| 12 | MED_RENT | ACS B25064 |
-| 13 | MED_HOMEVAL | ACS B25077 |
-| 15 | VACANCY_RATE | ACS B25004 + B25003 |
+| 3 | LAND_AREA | Census state area reference (static) |
+| 4 | POP_DENS | Derived (POP / LAND_AREA) |
+| 5 | GDP | BEA SAGDP2N — 2024 available |
+| 6 | RPP | BEA SARPP — 2024 released Feb 2026 |
+| 7 | REAL_PCPI | BEA SARPI — 2024 released Feb 2026 |
+| 8 | UNEMP | BLS LAUS 2024 |
+| 9 | PRIV_EMP | BLS QCEW 2024 |
+| 10 | PRIV_ESTAB | BLS QCEW 2024 |
+| 11 | PRIV_AVG_PAY | BLS QCEW 2024 (derived) |
+| 12 | PERMITS | Census BPS 2024 |
+| 13 | MED_RENT | ACS B25064 |
+| 14 | MED_HOMEVAL | ACS B25077 |
+| 16 | VACANCY_RATE | ACS B25004 + B25003 |
 | 17 | TRANSIT_SHARE | ACS B08301 |
 | 18 | BA_PLUS | ACS B15003 |
+| 20 | ELEC_PRICE_TOT | EIA API v2 — 2024 data available |
 
-### Needs review (implementation-blocking or version-verification required)
+### Needs review (minor — verify at implementation)
 
 | # | Variable | Issue |
 |---|---|---|
 | 1 | POP | Census PEP 2024 API endpoint/variable name needs verification |
-| 5 | RPP | May lag — 2024 may not be available |
-| 6 | REAL_PCPI | May lag — 2024 may not be available |
-| 14 | COST_BURDEN_ALL | B25091 without-mortgage offsets need verification |
+| 15 | COST_BURDEN_ALL | B25091 without-mortgage offsets need verification for 2024 vintage |
 | 16 | COMMUTE_MED | Subject table S0801 variable code needs verification |
-| 19 | UNINSURED | S2701 variable code needs verification |
-| 20 | ELEC_PRICE_TOT | 2024 EIA data availability needs verification |
-| 21 | CRIME_VIOLENT_RATE | 2024 FBI data likely not yet available |
-| 22 | NRI_RISK_INDEX | Not annually updated; version must be documented |
+| 19 | UNINSURED | S2701 variable code needs verification; B27010 fallback available |
+
+### Needs review (methodological decision required)
+
+| # | Variable | Issue |
+|---|---|---|
+| 21 | CRIME_VIOLENT_RATE | 2024 data exists but FBI CDE API is unreliable. May need bulk download. |
+| 22 | NRI_RISK_INDEX | **State-level composite not directly available.** Must either (a) aggregate county-level RISK_SCORE (requires choosing aggregation method) or (b) substitute state-level Expected Annual Loss (EAL). Requires approval. |
