@@ -70,7 +70,7 @@ These variables count people **currently residing** in a state who moved **from 
 | 55-64 | 55-59, 60-64 | B07001_076E, B07001_077E | Sum |
 | 65+ | 65-69, 70-74, 75+ | B07001_078E, B07001_079E, B07001_080E | Sum |
 
-**Status**: **confirmed** — variable codes verified against Census Reporter metadata (ACS 2022 1-year; structure is identical across ACS vintages).
+**Status**: **confirmed** — variable codes verified against Census Reporter ACS 2024 1-year precomputed metadata (GitHub). All 96 B07001 variables confirmed.
 
 ### 1.4 OUT_COUNT variable mapping (from B07401 "Different state" block)
 
@@ -84,25 +84,27 @@ B07401 has the same structure as B07001 but from the perspective of the **state 
 | 55-64 | 55-59, 60-64 | B07401_076E, B07401_077E | Sum |
 | 65+ | 65-69, 70-74, 75+ | B07401_078E, B07401_079E, B07401_080E | Sum |
 
-**Status**: **confirmed** — variable codes verified. Note: B07401 has 80 variables (no "Moved from abroad" category, as it tracks the previous-residence perspective).
+**Status**: **confirmed** — variable codes verified against Census Reporter ACS 2024 1-year precomputed metadata (GitHub). All 80 B07401 variables confirmed. Note: B07401 has no "Moved from abroad" category (it tracks the previous-residence perspective).
 
 ### 1.5 Age-group population denominator
 
-**Critical design decision**: The denominator for migration rates (POP in the DV formula) must be **age-group-specific**, not total state population.
+**Critical design decision**: The denominator for migration rates (POP_AGE in the DV formula) must be **age-group-specific**, not total state population.
 
-**Source**: B07001 "Total" block (all mobility statuses combined), which represents the full population 1 year and over by age group for each state.
+**Source**: ACS 2024 1-year table **B01001** (Sex by Age). Universe: Total population. Male + Female summed.
 
-| Project age group | ACS variable codes | Aggregation |
-|---|---|---|
-| 18-24 | B07001_004E (18-19), B07001_005E (20-24) | Sum |
-| 25-34 | B07001_006E (25-29), B07001_007E (30-34) | Sum |
-| 35-54 | B07001_008E (35-39), B07001_009E (40-44), B07001_010E (45-49), B07001_011E (50-54) | Sum |
-| 55-64 | B07001_012E (55-59), B07001_013E (60-64) | Sum |
-| 65+ | B07001_014E (65-69), B07001_015E (70-74), B07001_016E (75+) | Sum |
+B01001 uses finer age bins than B07001, so multiple cells must be summed per project age group:
 
-**Rationale**: Using B07001 Total ensures that the denominator comes from the same universe (population 1 year and over) as the migration numerators. This avoids denominator-numerator mismatch.
+| Project age group | Male codes | Female codes | # cells |
+|---|---|---|---|
+| 18-24 | B01001_007E (18-19), B01001_008E (20), B01001_009E (21), B01001_010E (22-24) | B01001_031E (18-19), B01001_032E (20), B01001_033E (21), B01001_034E (22-24) | 8 |
+| 25-34 | B01001_011E (25-29), B01001_012E (30-34) | B01001_035E (25-29), B01001_036E (30-34) | 4 |
+| 35-54 | B01001_013E (35-39), B01001_014E (40-44), B01001_015E (45-49), B01001_016E (50-54) | B01001_037E (35-39), B01001_038E (40-44), B01001_039E (45-49), B01001_040E (50-54) | 8 |
+| 55-64 | B01001_017E (55-59), B01001_018E (60-61), B01001_019E (62-64) | B01001_041E (55-59), B01001_042E (60-61), B01001_043E (62-64) | 6 |
+| 65+ | B01001_020E (65-66), B01001_021E (67-69), B01001_022E (70-74), B01001_023E (75-79), B01001_024E (80-84), B01001_025E (85+) | B01001_044E (65-66), B01001_045E (67-69), B01001_046E (70-74), B01001_047E (75-79), B01001_048E (80-84), B01001_049E (85+) | 12 |
 
-**Status**: **confirmed** — variable codes verified against Census Reporter metadata.
+**Rationale**: B01001 provides the standard total-population age-group denominator. For ages 18+, this is functionally identical to B07001 Total (population 1 year and over) since everyone 18+ is automatically 1 year and over. B01001 is preferred because it is the canonical population-by-age table and avoids coupling the denominator to the mobility table's universe definition.
+
+**Status**: **confirmed** — all 49 B01001 variable codes verified against Census Reporter ACS 2024 1-year precomputed metadata (GitHub).
 
 ### 1.6 DV formulas
 
@@ -113,7 +115,7 @@ All formulas are computed per state per age group.
 | IN_COUNT | Sum of B07001 "different state" age bracket variables | persons |
 | OUT_COUNT | Sum of B07401 "different state" age bracket variables | persons |
 | NET_COUNT | IN_COUNT − OUT_COUNT | persons |
-| POP_AGE | Sum of B07001 "Total" age bracket variables | persons |
+| POP_AGE | Sum of B01001 male + female age bracket variables | persons |
 | IN_RATE | 1000 × IN_COUNT / POP_AGE | per 1,000 |
 | OUT_RATE | 1000 × OUT_COUNT / POP_AGE | per 1,000 |
 | **NET_RATE** | **1000 × (IN_COUNT − OUT_COUNT) / POP_AGE** | **per 1,000** |
@@ -353,7 +355,7 @@ COST_BURDEN_ALL = 100 * (renter_burdened + owner_burdened) / (B25070_001E + B250
 
 **Unit**: percent
 
-**Status**: **needs review** — B25091 variable positions for the "without mortgage" subcategory offsets should be verified against the 2024 group definition. The structure shown above matches 2019–2023 ACS vintages.
+**Status**: **confirmed** — all B25070 and B25091 variable codes verified against Census Reporter ACS 2024 1-year precomputed metadata (GitHub). B25070: 11 variables (001–011). B25091: 23 variables (001–023). Codes 008–011 (with mortgage >=30%) and 019–022 (without mortgage >=30%) confirmed.
 
 ---
 
@@ -408,7 +410,7 @@ VACANCY_RATE = 100 * B25004_002E / (B25004_002E + B25004_003E + B25003_003E)
 | Description | Public transportation share of commuters |
 | Source | ACS 2024 1-year |
 | Table | B08301 (Means of Transportation to Work) |
-| Variables | B08301_010E (public transportation, excl. taxicab), B08301_001E (total workers 16+) |
+| Variables | B08301_010E (public transportation; taxi/ride-hailing is separate sibling B08301_016E), B08301_001E (total workers 16+) |
 
 **Formula**:
 ```
@@ -461,7 +463,7 @@ BA_PLUS = 100 * (B15003_022E + B15003_023E + B15003_024E + B15003_025E) / B15003
 
 **Unit**: percent
 
-**Status**: **needs review** — S2701 variable code must be verified for 2024 vintage. Fallback B27010 codes must also be verified. Subject table codes are less stable across vintages than detail table codes.
+**Status**: **needs review** — S2701 subject table variable code must be verified for 2024 vintage (subject table codes are less stable across vintages). **Fallback B27010 codes now confirmed**: B27010_017E (under 19, no insurance), B27010_033E (19-34), B27010_050E (35-64), B27010_066E (65+) verified against Census Reporter ACS 2024 1-year metadata.
 
 ---
 
@@ -493,7 +495,7 @@ BA_PLUS = 100 * (B15003_022E + B15003_023E + B15003_024E + B15003_025E) / B15003
 | Fallback | Bulk CSV/Excel download from https://cde.ucr.cjis.gov/LATEST/webapp/#/pages/downloads |
 | Unit | per 100,000 |
 | Formula | direct read (pre-computed rate) or compute from counts + population |
-| Status | **needs review** — FBI released 2024 data (95.6% population coverage) but CDE API documentation is incomplete and unreliable. State-level rates may need to be computed from count data. Fallback: bulk download. If API fails, escalate for approval on alternative source (e.g., BJS). |
+| Status | **needs review (extraction method only)** — 2024 data confirmed released (95.6% population coverage). Data exists. Exact extraction method still needs review: CDE API is unreliable; bulk CSV download is the likely path. State-level rates may need to be computed from count data. |
 
 ---
 
@@ -518,42 +520,49 @@ BA_PLUS = 100 * (B15003_022E + B15003_023E + B15003_024E + B15003_025E) / B15003
 
 ## 22. Summary of source status
 
+**Verification method**: Census Reporter ACS 2024 1-year precomputed metadata on GitHub (mirrors Census Bureau table shells). All ACS detail table codes verified against this source. ACS 2024 1-year dataset confirmed available.
+
 ### Confirmed (ready to implement)
 
-| # | Variable | Source |
-|---|---|---|
-| DV | IN_COUNT (all age groups) | ACS B07001 "Different state" block — verified |
-| DV | OUT_COUNT (all age groups) | ACS B07401 "Different state" block — verified |
-| DV | POP_AGE denominator | ACS B07001 "Total" block — verified |
-| 3 | LAND_AREA | Census state area reference (static) |
-| 4 | POP_DENS | Derived (POP / LAND_AREA) |
-| 5 | GDP | BEA SAGDP2N — 2024 available |
-| 6 | RPP | BEA SARPP — 2024 released Feb 2026 |
-| 7 | REAL_PCPI | BEA SARPI — 2024 released Feb 2026 |
-| 8 | UNEMP | BLS LAUS 2024 |
-| 9 | PRIV_EMP | BLS QCEW 2024 |
-| 10 | PRIV_ESTAB | BLS QCEW 2024 |
-| 11 | PRIV_AVG_PAY | BLS QCEW 2024 (derived) |
-| 12 | PERMITS | Census BPS 2024 |
-| 13 | MED_RENT | ACS B25064 |
-| 14 | MED_HOMEVAL | ACS B25077 |
-| 16 | VACANCY_RATE | ACS B25004 + B25003 |
-| 17 | TRANSIT_SHARE | ACS B08301 |
-| 18 | BA_PLUS | ACS B15003 |
-| 20 | ELEC_PRICE_TOT | EIA API v2 — 2024 data available |
+| # | Variable | Source | Verification |
+|---|---|---|---|
+| DV | IN_COUNT (all age groups) | ACS B07001 "Different state" block | 96 vars verified, ACS 2024 1-yr |
+| DV | OUT_COUNT (all age groups) | ACS B07401 "Different state" block | 80 vars verified, ACS 2024 1-yr |
+| DV | POP_AGE denominator | **ACS B01001** (Sex by Age, male+female) | 49 vars verified, ACS 2024 1-yr |
+| 3 | LAND_AREA | Census state area reference (static) | unchanged |
+| 4 | POP_DENS | Derived (POP / LAND_AREA) | unchanged |
+| 5 | GDP | BEA SAGDP2N — 2024 available | unchanged |
+| 6 | RPP | BEA SARPP — 2024 released Feb 2026 | unchanged |
+| 7 | REAL_PCPI | BEA SARPI — 2024 released Feb 2026 | unchanged |
+| 8 | UNEMP | BLS LAUS 2024 | unchanged |
+| 9 | PRIV_EMP | BLS QCEW 2024 | unchanged |
+| 10 | PRIV_ESTAB | BLS QCEW 2024 | unchanged |
+| 11 | PRIV_AVG_PAY | BLS QCEW 2024 (derived) | unchanged |
+| 12 | PERMITS | Census BPS 2024 | unchanged |
+| 13 | MED_RENT | ACS B25064 | unchanged |
+| 14 | MED_HOMEVAL | ACS B25077 | unchanged |
+| 15 | COST_BURDEN_ALL | ACS B25070 + B25091 | **newly verified** — B25091 codes confirmed |
+| 16 | VACANCY_RATE | ACS B25004 + B25003 | codes verified, ACS 2024 1-yr |
+| 17 | TRANSIT_SHARE | ACS B08301 | codes verified; taxi/ride-hailing is separate sibling |
+| 18 | BA_PLUS | ACS B15003 | codes verified, ACS 2024 1-yr |
+| 20 | ELEC_PRICE_TOT | EIA API v2 — 2024 data available | unchanged |
 
 ### Needs review (minor — verify at implementation)
 
 | # | Variable | Issue |
 |---|---|---|
 | 1 | POP | Census PEP 2024 API endpoint/variable name needs verification |
-| 15 | COST_BURDEN_ALL | B25091 without-mortgage offsets need verification for 2024 vintage |
-| 16 | COMMUTE_MED | Subject table S0801 variable code needs verification |
-| 19 | UNINSURED | S2701 variable code needs verification; B27010 fallback available |
+| 16 | COMMUTE_MED | Subject table S0801 variable code needs verification (not in detail-table metadata) |
+| 19 | UNINSURED | S2701 subject table code needs verification. **Fallback B27010 codes now confirmed** (017, 033, 050, 066). |
+
+### Needs review (extraction method only — data exists)
+
+| # | Variable | Issue |
+|---|---|---|
+| 21 | CRIME_VIOLENT_RATE | 2024 data confirmed released. CDE API unreliable; bulk CSV download likely needed. |
 
 ### Needs review (methodological decision required)
 
 | # | Variable | Issue |
 |---|---|---|
-| 21 | CRIME_VIOLENT_RATE | 2024 data exists but FBI CDE API is unreliable. May need bulk download. |
 | 22 | NRI_RISK_INDEX | **State-level composite not directly available.** Must either (a) aggregate county-level RISK_SCORE (requires choosing aggregation method) or (b) substitute state-level Expected Annual Loss (EAL). Requires approval. |
