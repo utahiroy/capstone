@@ -163,16 +163,26 @@ def main():
         section("Fetching GDP (BEA SAGDP2N)")
         try:
             df_gdp = fetch_gdp(bea_key)
-            df_gdp = df_gdp[df_gdp["state"].isin(SMOKE_STATES)].copy()
-            print(df_gdp[["state", "GeoName", "GDP"]].to_string(index=False))
-            all_ok &= validate_no_nulls(df_gdp[["GDP"]], "GDP")
+            df_gdp_smoke = df_gdp[df_gdp["state"].isin(SMOKE_STATES)].copy()
+            show_cols = ["state", "GeoName", "GDP"]
+            if "GDP_YEAR_NOTE" in df_gdp_smoke.columns:
+                show_cols.append("GDP_YEAR_NOTE")
+            print(df_gdp_smoke[show_cols].to_string(index=False))
+            null_count = df_gdp_smoke["GDP"].isna().sum()
+            if null_count > 0:
+                print(f"  WARNING: {null_count} of {len(df_gdp_smoke)} GDP values are null")
+                all_ok = False
+            else:
+                print(f"  OK: GDP — all {len(df_gdp_smoke)} values populated")
         except Exception as e:
             print(f"  ERROR fetching GDP: {e}")
-            df_gdp = pd.DataFrame(columns=["state", "GeoName", "GDP"])
+            import traceback
+            traceback.print_exc()
+            df_gdp_smoke = pd.DataFrame(columns=["state", "GeoName", "GDP"])
             all_ok = False
     else:
         section("Skipping GDP (no BEA_API_KEY)")
-        df_gdp = pd.DataFrame(columns=["state", "GeoName", "GDP"])
+        df_gdp_smoke = pd.DataFrame(columns=["state", "GeoName", "GDP"])
 
     # ── 6. Join smoke IVs ────────────────────────────────────────────────
     section("Joining smoke-test IVs")
@@ -181,8 +191,11 @@ def main():
     ivs = ivs.merge(
         df_burden[["state", "COST_BURDEN_ALL"]], on="state", how="left"
     )
-    if not df_gdp.empty:
-        ivs = ivs.merge(df_gdp[["state", "GDP"]], on="state", how="left")
+    if not df_gdp_smoke.empty:
+        gdp_merge_cols = ["state", "GDP"]
+        if "GDP_YEAR_NOTE" in df_gdp_smoke.columns:
+            gdp_merge_cols.append("GDP_YEAR_NOTE")
+        ivs = ivs.merge(df_gdp_smoke[gdp_merge_cols], on="state", how="left")
     else:
         ivs["GDP"] = None
 
