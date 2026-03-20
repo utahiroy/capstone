@@ -59,35 +59,60 @@ def _parse_bps_text(text, url):
     df.columns = [c.strip().lower().replace(" ", "_") for c in df.columns]
 
     print(f"  PERMITS: columns = {list(df.columns)}")
+    print(f"  PERMITS: first 3 rows:\n{df.head(3).to_string(index=False)}")
 
-    # Find state FIPS column
+    # Find state FIPS column — prioritize explicitly numeric FIPS columns
+    # over "state" which may contain state names
     fips_col = None
-    for candidate in ["state", "state_fips", "statefips", "fips", "code", "csa",
-                       "stfips", "fipstate"]:
+    for candidate in ["fips", "state_fips", "statefips", "stfips", "fipstate",
+                       "code", "csa"]:
         if candidate in df.columns:
             fips_col = candidate
             break
-    # Also try partial match
+    # Only use "state" column as FIPS if it contains numeric values
+    if fips_col is None and "state" in df.columns:
+        test_vals = pd.to_numeric(
+            df["state"].astype(str).str.strip().str.replace(r"\.0$", "", regex=True),
+            errors="coerce",
+        )
+        if test_vals.notna().sum() > 30:
+            fips_col = "state"
+        else:
+            print(f"  PERMITS: 'state' column contains non-numeric values, skipping as FIPS")
+    # Partial match fallback
     if fips_col is None:
         for c in df.columns:
-            if "fips" in c or "state" in c:
+            if "fips" in c:
                 fips_col = c
                 break
 
-    # Find total units column — the first numeric column after FIPS that represents
-    # total units authorized. Common names: total, units, total_units
+    # Find total units column — BPS state annual files typically have:
+    #   fips, state, total, 1-unit bldgs, 1-unit units, 2-unit bldgs, ...
+    # "total" = total units across all building types
     units_col = None
     for candidate in ["total", "units", "total_units", "1-unit_units",
-                       "all_units", "tot", "bldgs"]:
+                       "all_units", "tot", "bldgs", "1-unit"]:
         if candidate in df.columns:
-            units_col = candidate
-            break
-    # Fallback: use the second column if it looks numeric
-    if units_col is None and len(df.columns) >= 2 and fips_col == df.columns[0]:
-        candidate = df.columns[1]
-        test_vals = pd.to_numeric(df[candidate].str.replace(",", ""), errors="coerce")
-        if test_vals.notna().sum() > 30:
-            units_col = candidate
+            # Verify it looks numeric
+            test_vals = pd.to_numeric(
+                df[candidate].astype(str).str.replace(",", "").str.strip(),
+                errors="coerce",
+            )
+            if test_vals.notna().sum() > 20:
+                units_col = candidate
+                break
+    # Fallback: search for column containing "unit" or "total"
+    if units_col is None:
+        for c in df.columns:
+            cl = c.lower()
+            if "total" in cl or "unit" in cl:
+                test_vals = pd.to_numeric(
+                    df[c].astype(str).str.replace(",", "").str.strip(),
+                    errors="coerce",
+                )
+                if test_vals.notna().sum() > 20:
+                    units_col = c
+                    break
 
     if fips_col is None or units_col is None:
         raise ValueError(
