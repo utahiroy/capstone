@@ -184,11 +184,12 @@ This source is **not** used for the main age-group DVs.
 | Description | Gross Domestic Product by state, 2024 annual |
 | Source | Bureau of Economic Analysis (BEA) |
 | Dataset | Regional GDP (SAGDP) |
-| API | `https://apps.bea.gov/api/data/?datasetname=Regional&TableName=SAGDP2N&LineCode=1&GeoFips=STATE&Year=2024&ResultFormat=JSON&UserID={key}` |
+| API | `https://apps.bea.gov/api/data/?datasetname=Regional&TableName=SAGDP1&LineCode=1&GeoFips=STATE&Year=2024&ResultFormat=JSON&UserID={key}` |
 | Variable | All-industry total GDP (current dollars) |
 | Unit | millions of dollars |
 | Formula | direct read |
-| Status | **confirmed** — BEA API well-documented; 2024 annual GDP typically available by mid-2025 |
+| Table candidates | SAGDP2N tried first; SAGDP1 used as working fallback. Smoke test confirmed SAGDP1 succeeds. |
+| Status | **confirmed (smoke-tested)** — SAGDP2N rejected by BEA API ("Invalid Value for Parameter TableName"); SAGDP1 with LineCode=1 returned valid 2024 state GDP. Code tries both candidates in order with explicit logging. |
 
 ---
 
@@ -531,7 +532,7 @@ BA_PLUS = 100 * (B15003_022E + B15003_023E + B15003_024E + B15003_025E) / B15003
 | DV | POP_AGE denominator | **ACS B01001** (Sex by Age, male+female) | 49 vars verified, ACS 2024 1-yr |
 | 3 | LAND_AREA | Census state area reference (static) | unchanged |
 | 4 | POP_DENS | Derived (POP / LAND_AREA) | unchanged |
-| 5 | GDP | BEA SAGDP2N — 2024 available | unchanged |
+| 5 | GDP | BEA SAGDP1 (LineCode=1) — 2024 smoke-tested | SAGDP2N rejected by API; SAGDP1 confirmed working |
 | 6 | RPP | BEA SARPP — 2024 released Feb 2026 | unchanged |
 | 7 | REAL_PCPI | BEA SARPI — 2024 released Feb 2026 | unchanged |
 | 8 | UNEMP | BLS LAUS 2024 | unchanged |
@@ -551,7 +552,7 @@ BA_PLUS = 100 * (B15003_022E + B15003_023E + B15003_024E + B15003_025E) / B15003
 
 | # | Variable | Issue |
 |---|---|---|
-| 1 | POP | Census PEP 2024 API endpoint/variable name needs verification |
+| 1 | POP | Smoke test used ACS B01001_001E (total pop). Census PEP vintage 2024 endpoint still unverified; ACS total pop used as working source. |
 | 16 | COMMUTE_MED | Subject table S0801 variable code needs verification (not in detail-table metadata) |
 | 19 | UNINSURED | S2701 subject table code needs verification. **Fallback B27010 codes now confirmed** (017, 033, 050, 066). |
 
