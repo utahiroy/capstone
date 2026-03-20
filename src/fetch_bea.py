@@ -6,6 +6,83 @@ import pandas as pd
 BEA_BASE = "https://apps.bea.gov/api/data/"
 
 
+# ── Metadata helpers ──────────────────────────────────────────────────
+
+def _bea_request(api_key, **extra_params):
+    """Low-level BEA API call. Returns the parsed BEAAPI dict."""
+    params = {
+        "UserID": api_key,
+        "ResultFormat": "JSON",
+        **extra_params,
+    }
+    resp = requests.get(BEA_BASE, params=params, timeout=60)
+    resp.raise_for_status()
+    payload = resp.json()
+    beaapi = payload.get("BEAAPI", {})
+    return beaapi
+
+
+def _check_bea_error(beaapi, context=""):
+    """Raise if the BEAAPI response contains an error at any known path.
+
+    BEA returns errors in at least two locations:
+      1. BEAAPI.Error  (top-level)
+      2. BEAAPI.Results.Error  (nested inside Results, sometimes a list)
+    """
+    # Path 1: top-level
+    error = beaapi.get("Error")
+    if error:
+        raise ValueError(f"BEA API error ({context}): {error}")
+
+    # Path 2: nested under Results
+    results = beaapi.get("Results", {})
+    if isinstance(results, list):
+        results = results[0] if results else {}
+    nested_err = results.get("Error")
+    if nested_err:
+        raise ValueError(f"BEA API error ({context}): {nested_err}")
+
+
+def get_valid_table_names(api_key, prefix=None):
+    """Query BEA for valid Regional TableName values.
+
+    Returns list of dicts with 'Key' and 'Desc' fields, optionally
+    filtered to table names starting with *prefix* (e.g. "SAGDP").
+    """
+    beaapi = _bea_request(
+        api_key,
+        method="GetParameterValues",
+        datasetname="Regional",
+        ParameterName="TableName",
+    )
+    _check_bea_error(beaapi, context="GetParameterValues/TableName")
+    results = beaapi.get("Results", {})
+    if isinstance(results, list):
+        results = results[0] if results else {}
+    values = results.get("ParamValue", [])
+    if prefix:
+        values = [v for v in values if v.get("Key", "").startswith(prefix)]
+    return values
+
+
+def get_valid_line_codes(api_key, table_name):
+    """Query BEA for valid LineCode values for a given Regional table."""
+    beaapi = _bea_request(
+        api_key,
+        method="GetParameterValuesFiltered",
+        datasetname="Regional",
+        TargetParameter="LineCode",
+        TableName=table_name,
+    )
+    _check_bea_error(beaapi, context=f"GetParameterValuesFiltered/{table_name}")
+    results = beaapi.get("Results", {})
+    if isinstance(results, list):
+        results = results[0] if results else {}
+    return results.get("ParamValue", [])
+
+
+# ── Data fetch ────────────────────────────────────────────────────────
+
 def fetch_bea_regional(table_name, line_code, year, api_key, geo_fips="STATE"):
     """Fetch a BEA Regional table for all states.
 
@@ -42,10 +119,8 @@ def fetch_bea_regional(table_name, line_code, year, api_key, geo_fips="STATE"):
     # BEA wraps everything under BEAAPI
     beaapi = payload.get("BEAAPI", {})
 
-    # Check for API-level errors
-    error = beaapi.get("Error", None)
-    if error:
-        raise ValueError(f"BEA API error: {error}")
+    # Check for API-level errors (top-level AND nested under Results)
+    _check_bea_error(beaapi, context=f"GetData/{table_name}")
 
     # Results can be a dict or a list depending on the response
     results = beaapi.get("Results", {})
@@ -59,7 +134,6 @@ def fetch_bea_regional(table_name, line_code, year, api_key, geo_fips="STATE"):
 
     data = results.get("Data", [])
     if not data:
-        # If year not available, try LAST5 as diagnostic
         raise ValueError(
             f"No data returned for {table_name} LineCode={line_code} Year={year}. "
             f"The {year} vintage may not yet be published for this table. "
@@ -110,8 +184,18 @@ def fetch_bea_regional(table_name, line_code, year, api_key, geo_fips="STATE"):
     return df[["state", "GeoName", "DataValue"]].reset_index(drop=True)
 
 
+# Candidate table names for all-industry GDP, in preference order.
+# SAGDP2N = "GDP by state (NAICS)"; SAGDP1 = "GDP summary".
+# Both use LineCode=1 for all-industry total.
+_GDP_TABLE_CANDIDATES = ["SAGDP2N", "SAGDP1"]
+
+
 def fetch_gdp(api_key, year=2024, allow_fallback=False):
     """Fetch state GDP (all-industry total, current dollars).
+
+    Tries each candidate GDP table name in order. If a table name is
+    rejected by BEA ("Invalid Value for Parameter TableName"), the next
+    candidate is attempted. Any other error is raised immediately.
 
     Parameters
     ----------
@@ -119,31 +203,76 @@ def fetch_gdp(api_key, year=2024, allow_fallback=False):
     year : int
         Must match the project year (2024).
     allow_fallback : bool
-        If False (default), raises an error when the requested year is
-        unavailable. If True, retries with year-1 and tags the output
-        with a GDP_YEAR_NOTE column. Fallback is for debugging only and
-        must not be used in production pipeline runs.
+        If False (default), raises on year-unavailability.
+        If True (debug only), retries with year-1.
     """
+    errors_by_table = {}
+
+    for table_name in _GDP_TABLE_CANDIDATES:
+        try:
+            print(f"  Trying GDP table: {table_name}, LineCode=1, Year={year}")
+            df = fetch_bea_regional(
+                table_name, line_code=1, year=year, api_key=api_key
+            )
+            if df["DataValue"].isna().all():
+                raise ValueError(f"All GDP values are NA for year {year}")
+            print(f"  OK: GDP fetched from table {table_name}")
+            return df.rename(columns={"DataValue": "GDP"})
+        except ValueError as e:
+            err_str = str(e)
+            errors_by_table[table_name] = err_str
+            # If the table name itself is invalid, try the next candidate
+            if "Invalid" in err_str and "TableName" in err_str:
+                print(f"  Table {table_name} rejected by BEA, trying next candidate...")
+                continue
+            # For any other error (year unavailable, no data, etc.), stop
+            break
+
+    # All candidates failed — build a diagnostic message
+    diag_lines = [
+        f"GDP fetch failed for year={year}.",
+        "Errors by table candidate:",
+    ]
+    for tbl, err in errors_by_table.items():
+        diag_lines.append(f"  {tbl}: {err}")
+
+    # Run metadata discovery to help the user diagnose
     try:
-        df = fetch_bea_regional("SAGDP2N", line_code=1, year=year, api_key=api_key)
-        if df["DataValue"].isna().all():
-            raise ValueError(f"All GDP values are NA for year {year}")
-        return df.rename(columns={"DataValue": "GDP"})
-    except ValueError as e:
-        if not allow_fallback:
-            raise ValueError(
-                f"GDP for {year} is unavailable from BEA. "
-                f"Original error: {e}\n"
-                f"This project is fixed to {year} cross-section only. "
-                f"Do not substitute a different year without explicit approval."
-            ) from e
-        # Fallback path — debug only
-        fallback_year = year - 1
-        print(f"  WARNING: GDP fetch for {year} failed: {e}")
-        print(f"  DEBUG FALLBACK to year {fallback_year} (allow_fallback=True)")
-        df = fetch_bea_regional(
-            "SAGDP2N", line_code=1, year=fallback_year, api_key=api_key
-        )
-        df = df.rename(columns={"DataValue": "GDP"})
-        df["GDP_YEAR_NOTE"] = f"debug fallback to {fallback_year}"
-        return df
+        valid_tables = get_valid_table_names(api_key, prefix="SAGDP")
+        if valid_tables:
+            table_list = ", ".join(
+                f"{v['Key']} ({v.get('Desc', '?')})" for v in valid_tables
+            )
+            diag_lines.append(f"Valid SAGDP tables from BEA: {table_list}")
+
+            # For the first valid SAGDP table, show valid line codes
+            first_valid = valid_tables[0]["Key"]
+            line_codes = get_valid_line_codes(api_key, first_valid)
+            if line_codes:
+                lc_list = ", ".join(
+                    f"{lc['Key']}={lc.get('Desc', '?')}" for lc in line_codes[:5]
+                )
+                diag_lines.append(
+                    f"Sample LineCodes for {first_valid}: {lc_list}"
+                )
+        else:
+            diag_lines.append("No SAGDP tables found via GetParameterValues.")
+    except Exception as disc_err:
+        diag_lines.append(f"Metadata discovery also failed: {disc_err}")
+
+    full_msg = "\n".join(diag_lines)
+    print(full_msg)
+
+    if not allow_fallback:
+        raise ValueError(full_msg)
+
+    # Debug-only year fallback — only if the error was year-related
+    last_table = list(errors_by_table.keys())[-1]
+    fallback_year = year - 1
+    print(f"  DEBUG FALLBACK: retrying {last_table} with year={fallback_year}")
+    df = fetch_bea_regional(
+        last_table, line_code=1, year=fallback_year, api_key=api_key
+    )
+    df = df.rename(columns={"DataValue": "GDP"})
+    df["GDP_YEAR_NOTE"] = f"debug fallback to {fallback_year}"
+    return df
