@@ -8,7 +8,7 @@ from pathlib import Path
 def load_api_keys(config_path=None):
     """Return a dict of API keys from config/api_keys.py.
 
-    Keys returned: CENSUS_API_KEY, BEA_API_KEY, EIA_API_KEY, FBI_API_KEY.
+    Keys returned: CENSUS_API_KEY, BEA_API_KEY, EIA_API_KEY, DATA_GOV_API_KEY.
     Missing or empty keys are returned as empty strings.
     """
     if config_path is None:
@@ -26,7 +26,7 @@ def load_api_keys(config_path=None):
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
 
-    expected = ["CENSUS_API_KEY", "BEA_API_KEY", "EIA_API_KEY", "FBI_API_KEY"]
+    expected = ["CENSUS_API_KEY", "BEA_API_KEY", "EIA_API_KEY", "DATA_GOV_API_KEY"]
     keys = {}
     for name in expected:
         keys[name] = getattr(mod, name, "")

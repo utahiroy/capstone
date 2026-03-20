@@ -30,9 +30,10 @@ cp config/api_keys.py.template config/api_keys.py
 | CENSUS_API_KEY | https://api.census.gov/data/key_signup.html |
 | BEA_API_KEY | https://apps.bea.gov/api/signup/ |
 | EIA_API_KEY | https://www.eia.gov/opendata/register.php |
-| FBI_API_KEY | https://api.data.gov/signup/ |
+| DATA_GOV_API_KEY | https://api.data.gov/signup/ (covers FBI CDE and other data.gov APIs) |
 
 Only Census and BEA keys are needed for the smoke test.
+Census, BEA, and EIA keys are needed for the full A2 pipeline.
 
 ## Running the Smoke Test
 
@@ -47,6 +48,23 @@ The smoke test fetches data for 3 states (California, Texas, New York) and valid
 - Formula consistency checks
 
 Output files are saved to `smoke_test_outputs/`.
+
+## Running the Full A2 Pipeline
+
+```bash
+python -m scripts.build_dataset
+```
+
+Fetches all migration DVs and 18 core IVs for 50 states.
+Output: `data_raw/`, `data_interim/`, `data_processed/analysis_ready.csv`.
+
+## Validating A2 Outputs
+
+```bash
+python -m scripts.validate_a2
+```
+
+Checks row count, state coverage, column completeness, nulls, duplicates.
 
 ## Directory Structure
 

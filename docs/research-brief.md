@@ -136,7 +136,7 @@ Use these URLs as the primary source anchors unless a source has moved and the e
 
 | ID | URL |
 |---|---|
-| POP | https://www.census.gov/data/tables/time-series/demo/popest/2020s-state-total.html |
+| POP | https://api.census.gov/data/2024/acs/acs1.html (B01001_001E; PEP deferred) |
 | LAND_AREA | https://www.census.gov/geographies/reference-files/2010/geo/state-area.html |
 | GDP | https://www.bea.gov/data/gdp/gdp-state |
 | RPP | https://www.bea.gov/data/prices-inflation/regional-price-parities-state-and-metro-area |

@@ -234,11 +234,11 @@ This source is **not** used for the main age-group DVs.
 | Description | Annual average unemployment rate, 2024 |
 | Source | BLS Local Area Unemployment Statistics (LAUS) |
 | URL | https://www.bls.gov/lau/lastrk24.htm |
-| Alternative | BLS API v2: series ID `LAUST{FIPS}0000000000003` (not seasonally adjusted, unemployment rate). Annual average = period M13. Up to 50 series per request. |
-| Access | HTML table parse or BLS API |
+| Implementation | BLS API v2 (public, no key required): series ID `LASST{FIPS}0000000000003`, period M13 = annual average. Batched 25 series per request. |
+| Access | BLS API v2 (A2 implementation) |
 | Unit | percent |
 | Formula | direct read |
-| Status | **confirmed** — LAUS 2024 annual averages are published by early 2025 |
+| Status | **confirmed** — LAUS 2024 annual averages published by early 2025. A2 uses BLS API. |
 
 ---
 
