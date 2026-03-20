@@ -49,6 +49,8 @@ def fetch_permits(year=2024):
             f"Tried multiple URL patterns. Census may use a different format."
         )
 
+    print(f"  PERMITS: downloaded from {url}")
+
     # Parse the fixed-width or CSV file
     text = resp.text
     # Try CSV first
@@ -77,9 +79,14 @@ def fetch_permits(year=2024):
             break
 
     if fips_col is None or units_col is None:
+        print(f"  PERMITS: columns available: {list(df.columns)}")
         raise ValueError(
-            f"Cannot identify BPS columns. Available: {list(df.columns)}"
+            f"Cannot identify BPS columns. "
+            f"fips_col={fips_col}, units_col={units_col}. "
+            f"Available: {list(df.columns)}"
         )
+
+    print(f"  PERMITS: using fips_col={fips_col}, units_col={units_col}")
 
     df["state"] = df[fips_col].astype(str).str.zfill(2)
     df["PERMITS"] = pd.to_numeric(df[units_col], errors="coerce")

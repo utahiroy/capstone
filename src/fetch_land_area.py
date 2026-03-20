@@ -23,13 +23,13 @@ def fetch_land_area():
     resp = requests.get(LAND_AREA_URL, timeout=60)
 
     if resp.status_code != 200:
-        # Fallback: use hardcoded values from Census Bureau
-        # Source: https://www.census.gov/geographies/reference-files/2010/geo/state-area.html
+        print(f"  LAND_AREA: download failed (HTTP {resp.status_code}), using hardcoded values")
         return _hardcoded_land_area()
 
     try:
         df = pd.read_csv(io.StringIO(resp.text))
-    except Exception:
+    except Exception as e:
+        print(f"  LAND_AREA: CSV parse failed ({e}), using hardcoded values")
         return _hardcoded_land_area()
 
     # Normalize column names
@@ -54,9 +54,11 @@ def fetch_land_area():
         })
         result = result[result["state"].isin(STATE_FIPS.keys())]
         if len(result) == 50:
+            print(f"  LAND_AREA: loaded from Census download ({LAND_AREA_URL})")
             return result.sort_values("state").reset_index(drop=True)
 
     # If parsing fails, use hardcoded values
+    print("  LAND_AREA: column matching failed, using hardcoded values")
     return _hardcoded_land_area()
 
 

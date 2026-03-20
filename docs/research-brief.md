@@ -105,7 +105,7 @@ The explanatory variable set is fixed at 22 variables.
 
 | No | ID | Variable | Category | Source | Note |
 |---|---|---|---|---|---|
-| 1 | POP | Population | Size | Census PopEst | 2024 state estimate |
+| 1 | POP | Population | Size | ACS B01001_001E | 2024 (PEP deferred) |
 | 2 | LAND_AREA | Land area (sq mi) | Size | Census State Area | fixed geographic statistic |
 | 3 | POP_DENS | Population density | Size | derived from POP / LAND_AREA | derived |
 | 4 | GDP | Gross Domestic Product (state) | Macro | BEA GDP by State | 2024 annual |

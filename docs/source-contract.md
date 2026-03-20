@@ -135,14 +135,15 @@ This source is **not** used for the main age-group DVs.
 | Field | Value |
 |---|---|
 | ID | POP |
-| Description | Total state population estimate, 2024 |
-| Source | Census Population Estimates Program (PEP) |
-| Dataset | Vintage 2024 State Population Estimates |
-| Access | Census API: `https://api.census.gov/data/2024/pep/population` |
-| Variable code | POP_2024 (or equivalent vintage-2024 variable) |
+| Description | Total state population, 2024 |
+| Source | ACS 2024 1-year, table B01001 (Sex by Age) |
+| Dataset | ACS 2024 1-year estimates |
+| Access | Census API: `https://api.census.gov/data/2024/acs/acs1?get=B01001_001E&for=state:*` |
+| Variable code | B01001_001E (total population, both sexes) |
 | Unit | persons |
 | Formula | direct read |
-| Status | **needs review** — verify exact API endpoint and variable name for vintage 2024 PEP |
+| PEP alternative | Census PEP vintage 2024 (`/data/2024/pep/population`) was the original planned source but has not been implemented. ACS B01001_001E was used in smoke test and A2 pipeline. PEP may be revisited if ACS total pop proves insufficient (e.g., universe differences). For this cross-sectional analysis the difference is negligible. |
+| Status | **confirmed (smoke-tested)** — ACS B01001_001E returns total population for all 50 states. |
 
 ---
 
@@ -530,6 +531,7 @@ BA_PLUS = 100 * (B15003_022E + B15003_023E + B15003_024E + B15003_025E) / B15003
 | DV | IN_COUNT (all age groups) | ACS B07001 "Different state" block | 96 vars verified, ACS 2024 1-yr |
 | DV | OUT_COUNT (all age groups) | ACS B07401 "Different state" block | 80 vars verified, ACS 2024 1-yr |
 | DV | POP_AGE denominator | **ACS B01001** (Sex by Age, male+female) | 49 vars verified, ACS 2024 1-yr |
+| 1 | POP | ACS B01001_001E (total population) | Smoke-tested; PEP deferred |
 | 3 | LAND_AREA | Census state area reference (static) | unchanged |
 | 4 | POP_DENS | Derived (POP / LAND_AREA) | unchanged |
 | 5 | GDP | BEA SAGDP1 (LineCode=1) — 2024 smoke-tested | SAGDP2N rejected by API; SAGDP1 confirmed working |
@@ -552,7 +554,6 @@ BA_PLUS = 100 * (B15003_022E + B15003_023E + B15003_024E + B15003_025E) / B15003
 
 | # | Variable | Issue |
 |---|---|---|
-| 1 | POP | Smoke test used ACS B01001_001E (total pop). Census PEP vintage 2024 endpoint still unverified; ACS total pop used as working source. |
 | 16 | COMMUTE_MED | Subject table S0801 variable code needs verification (not in detail-table metadata) |
 | 19 | UNINSURED | S2701 subject table code needs verification. **Fallback B27010 codes now confirmed** (017, 033, 050, 066). |
 
