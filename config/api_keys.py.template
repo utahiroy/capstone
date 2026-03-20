@@ -1,0 +1,7 @@
+# Copy this file to config/api_keys.py and fill in your keys.
+# config/api_keys.py is gitignored and must never be committed.
+
+CENSUS_API_KEY = ""   # https://api.census.gov/data/key_signup.html
+BEA_API_KEY = ""      # https://apps.bea.gov/api/signup/
+EIA_API_KEY = ""      # https://www.eia.gov/opendata/register.php
+FBI_API_KEY = ""      # https://api.data.gov/signup/
