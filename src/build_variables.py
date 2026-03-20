@@ -5,6 +5,10 @@ from src.constants import (
     AGE_GROUPS, IN_COUNT_VARS, OUT_COUNT_VARS, POP_AGE_VARS,
     COST_BURDEN_RENTER_TOTAL, COST_BURDEN_RENTER_BURDENED,
     COST_BURDEN_OWNER_TOTAL, COST_BURDEN_OWNER_BURDENED,
+    VACANCY_FOR_RENT, VACANCY_RENTED_NOT_OCC, OCCUPIED_RENTER,
+    TRANSIT_WORKERS_TOTAL, TRANSIT_PUBLIC,
+    BA_PLUS_TOTAL, BA_PLUS_BACHELORS, BA_PLUS_MASTERS,
+    BA_PLUS_PROFESSIONAL, BA_PLUS_DOCTORATE,
 )
 
 
@@ -60,3 +64,41 @@ def build_cost_burden(df_burden):
     owner_total = df_burden[COST_BURDEN_OWNER_TOTAL]
 
     return 100 * (renter_burdened + owner_burdened) / (renter_total + owner_total)
+
+
+def build_vacancy_rate(df):
+    """Compute VACANCY_RATE from B25004 + B25003 variables.
+
+    Formula: 100 * B25004_002E / (B25004_002E + B25004_003E + B25003_003E)
+    """
+    for_rent = df[VACANCY_FOR_RENT]
+    rented_not_occ = df[VACANCY_RENTED_NOT_OCC]
+    occ_renter = df[OCCUPIED_RENTER]
+    return 100 * for_rent / (for_rent + rented_not_occ + occ_renter)
+
+
+def build_transit_share(df):
+    """Compute TRANSIT_SHARE from B08301 variables.
+
+    Formula: 100 * B08301_010E / B08301_001E
+    """
+    return 100 * df[TRANSIT_PUBLIC] / df[TRANSIT_WORKERS_TOTAL]
+
+
+def build_ba_plus(df):
+    """Compute BA_PLUS from B15003 variables.
+
+    Formula: 100 * (bachelor + master + professional + doctorate) / total_25plus
+    """
+    ba_plus_count = (
+        df[BA_PLUS_BACHELORS]
+        + df[BA_PLUS_MASTERS]
+        + df[BA_PLUS_PROFESSIONAL]
+        + df[BA_PLUS_DOCTORATE]
+    )
+    return 100 * ba_plus_count / df[BA_PLUS_TOTAL]
+
+
+def build_pop_density(pop, land_area):
+    """Compute POP_DENS = POP / LAND_AREA (persons per square mile)."""
+    return pop / land_area

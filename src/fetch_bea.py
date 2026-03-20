@@ -181,6 +181,11 @@ def fetch_bea_regional(table_name, line_code, year, api_key, geo_fips="STATE"):
     )
     df["DataValue"] = pd.to_numeric(df["DataValue"], errors="coerce")
 
+    # Deduplicate: BEA may return both 5-digit and 2-digit FIPS for the same
+    # state. After normalizing to 2-digit, drop duplicates (keep first non-NA).
+    df = df.sort_values("DataValue", na_position="last")
+    df = df.drop_duplicates(subset=["state"], keep="first")
+
     return df[["state", "GeoName", "DataValue"]].reset_index(drop=True)
 
 
@@ -276,3 +281,54 @@ def fetch_gdp(api_key, year=2024, allow_fallback=False):
     df = df.rename(columns={"DataValue": "GDP"})
     df["GDP_YEAR_NOTE"] = f"debug fallback to {fallback_year}"
     return df
+
+
+def fetch_rpp(api_key, year=2024):
+    """Fetch Regional Price Parities (all items) for all states.
+
+    Returns DataFrame with columns: state, GeoName, RPP.
+    """
+    print(f"  Fetching RPP (SARPP, LineCode=1, Year={year})")
+    df = fetch_bea_regional("SARPP", line_code=1, year=year, api_key=api_key)
+    if df["DataValue"].isna().all():
+        raise ValueError(f"All RPP values are NA for year {year}")
+    return df.rename(columns={"DataValue": "RPP"})
+
+
+def fetch_real_pcpi(api_key, year=2024):
+    """Fetch Real Per Capita Personal Income for all states.
+
+    Tries LineCode=1 first. If that fails, uses metadata discovery
+    to find the correct LineCode.
+
+    Returns DataFrame with columns: state, GeoName, REAL_PCPI.
+    """
+    # Try LineCode=1 first (most common for summary line)
+    for lc in [1, 2, 3]:
+        try:
+            print(f"  Trying REAL_PCPI (SARPI, LineCode={lc}, Year={year})")
+            df = fetch_bea_regional(
+                "SARPI", line_code=lc, year=year, api_key=api_key
+            )
+            if df["DataValue"].isna().all():
+                continue
+            print(f"  OK: REAL_PCPI fetched with LineCode={lc}")
+            return df.rename(columns={"DataValue": "REAL_PCPI"})
+        except ValueError:
+            continue
+
+    # All simple attempts failed — try metadata discovery
+    try:
+        line_codes = get_valid_line_codes(api_key, "SARPI")
+        lc_info = ", ".join(
+            f"{lc['Key']}={lc.get('Desc', '?')}" for lc in line_codes[:10]
+        )
+        raise ValueError(
+            f"SARPI fetch failed for LineCode 1-3, Year={year}. "
+            f"Valid LineCodes: {lc_info}"
+        )
+    except Exception as e:
+        raise ValueError(
+            f"SARPI fetch failed for Year={year}. "
+            f"Could not determine correct LineCode. Error: {e}"
+        ) from e

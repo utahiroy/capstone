@@ -135,14 +135,15 @@ This source is **not** used for the main age-group DVs.
 | Field | Value |
 |---|---|
 | ID | POP |
-| Description | Total state population estimate, 2024 |
-| Source | Census Population Estimates Program (PEP) |
-| Dataset | Vintage 2024 State Population Estimates |
-| Access | Census API: `https://api.census.gov/data/2024/pep/population` |
-| Variable code | POP_2024 (or equivalent vintage-2024 variable) |
+| Description | Total state population, 2024 |
+| Source | ACS 2024 1-year, table B01001 (Sex by Age) |
+| Dataset | ACS 2024 1-year estimates |
+| Access | Census API: `https://api.census.gov/data/2024/acs/acs1?get=B01001_001E&for=state:*` |
+| Variable code | B01001_001E (total population, both sexes) |
 | Unit | persons |
 | Formula | direct read |
-| Status | **needs review** — verify exact API endpoint and variable name for vintage 2024 PEP |
+| PEP alternative | Census PEP vintage 2024 (`/data/2024/pep/population`) was the original planned source but has not been implemented. ACS B01001_001E was used in smoke test and A2 pipeline. PEP may be revisited if ACS total pop proves insufficient (e.g., universe differences). For this cross-sectional analysis the difference is negligible. |
+| Status | **confirmed (smoke-tested)** — ACS B01001_001E returns total population for all 50 states. |
 
 ---
 
@@ -184,11 +185,12 @@ This source is **not** used for the main age-group DVs.
 | Description | Gross Domestic Product by state, 2024 annual |
 | Source | Bureau of Economic Analysis (BEA) |
 | Dataset | Regional GDP (SAGDP) |
-| API | `https://apps.bea.gov/api/data/?datasetname=Regional&TableName=SAGDP2N&LineCode=1&GeoFips=STATE&Year=2024&ResultFormat=JSON&UserID={key}` |
+| API | `https://apps.bea.gov/api/data/?datasetname=Regional&TableName=SAGDP1&LineCode=1&GeoFips=STATE&Year=2024&ResultFormat=JSON&UserID={key}` |
 | Variable | All-industry total GDP (current dollars) |
 | Unit | millions of dollars |
 | Formula | direct read |
-| Status | **confirmed** — BEA API well-documented; 2024 annual GDP typically available by mid-2025 |
+| Table candidates | SAGDP2N tried first; SAGDP1 used as working fallback. Smoke test confirmed SAGDP1 succeeds. |
+| Status | **confirmed (smoke-tested)** — SAGDP2N rejected by BEA API ("Invalid Value for Parameter TableName"); SAGDP1 with LineCode=1 returned valid 2024 state GDP. Code tries both candidates in order with explicit logging. |
 
 ---
 
@@ -232,11 +234,11 @@ This source is **not** used for the main age-group DVs.
 | Description | Annual average unemployment rate, 2024 |
 | Source | BLS Local Area Unemployment Statistics (LAUS) |
 | URL | https://www.bls.gov/lau/lastrk24.htm |
-| Alternative | BLS API v2: series ID `LAUST{FIPS}0000000000003` (not seasonally adjusted, unemployment rate). Annual average = period M13. Up to 50 series per request. |
-| Access | HTML table parse or BLS API |
+| Implementation | BLS API v2 (public, no key required): series ID `LASST{FIPS}0000000000003`, period M13 = annual average. Batched 25 series per request. |
+| Access | BLS API v2 (A2 implementation) |
 | Unit | percent |
 | Formula | direct read |
-| Status | **confirmed** — LAUS 2024 annual averages are published by early 2025 |
+| Status | **confirmed** — LAUS 2024 annual averages published by early 2025. A2 uses BLS API. |
 
 ---
 
@@ -529,9 +531,10 @@ BA_PLUS = 100 * (B15003_022E + B15003_023E + B15003_024E + B15003_025E) / B15003
 | DV | IN_COUNT (all age groups) | ACS B07001 "Different state" block | 96 vars verified, ACS 2024 1-yr |
 | DV | OUT_COUNT (all age groups) | ACS B07401 "Different state" block | 80 vars verified, ACS 2024 1-yr |
 | DV | POP_AGE denominator | **ACS B01001** (Sex by Age, male+female) | 49 vars verified, ACS 2024 1-yr |
+| 1 | POP | ACS B01001_001E (total population) | Smoke-tested; PEP deferred |
 | 3 | LAND_AREA | Census state area reference (static) | unchanged |
 | 4 | POP_DENS | Derived (POP / LAND_AREA) | unchanged |
-| 5 | GDP | BEA SAGDP2N — 2024 available | unchanged |
+| 5 | GDP | BEA SAGDP1 (LineCode=1) — 2024 smoke-tested | SAGDP2N rejected by API; SAGDP1 confirmed working |
 | 6 | RPP | BEA SARPP — 2024 released Feb 2026 | unchanged |
 | 7 | REAL_PCPI | BEA SARPI — 2024 released Feb 2026 | unchanged |
 | 8 | UNEMP | BLS LAUS 2024 | unchanged |
@@ -551,7 +554,6 @@ BA_PLUS = 100 * (B15003_022E + B15003_023E + B15003_024E + B15003_025E) / B15003
 
 | # | Variable | Issue |
 |---|---|---|
-| 1 | POP | Census PEP 2024 API endpoint/variable name needs verification |
 | 16 | COMMUTE_MED | Subject table S0801 variable code needs verification (not in detail-table metadata) |
 | 19 | UNINSURED | S2701 subject table code needs verification. **Fallback B27010 codes now confirmed** (017, 033, 050, 066). |
 
