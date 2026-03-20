@@ -83,3 +83,29 @@ COST_BURDEN_OWNER_BURDENED = [
     "B25091_008E", "B25091_009E", "B25091_010E", "B25091_011E",  # with mortgage
     "B25091_019E", "B25091_020E", "B25091_021E", "B25091_022E",  # without mortgage
 ]
+
+# ── ACS IV variable codes (detail tables) ──
+# All codes verified against Census Reporter ACS 2024 1-year metadata.
+
+# Simple single-variable reads
+ACS_SIMPLE_VARS = {
+    "POP": "B01001_001E",          # Total population (Sex by Age, total)
+    "MED_RENT": "B25064_001E",     # Median gross rent
+    "MED_HOMEVAL": "B25077_001E",  # Median home value (owner-occupied)
+}
+
+# VACANCY_RATE components (B25004 + B25003)
+VACANCY_FOR_RENT = "B25004_002E"       # Vacant "For rent"
+VACANCY_RENTED_NOT_OCC = "B25004_003E" # Vacant "Rented, not occupied"
+OCCUPIED_RENTER = "B25003_003E"        # Occupied renter-occupied
+
+# TRANSIT_SHARE components (B08301)
+TRANSIT_WORKERS_TOTAL = "B08301_001E"  # Total workers 16+
+TRANSIT_PUBLIC = "B08301_010E"         # Public transportation
+
+# BA_PLUS components (B15003)
+BA_PLUS_TOTAL = "B15003_001E"          # Total population 25+
+BA_PLUS_BACHELORS = "B15003_022E"      # Bachelor's degree
+BA_PLUS_MASTERS = "B15003_023E"        # Master's degree
+BA_PLUS_PROFESSIONAL = "B15003_024E"   # Professional school degree
+BA_PLUS_DOCTORATE = "B15003_025E"      # Doctorate degree
