@@ -58,6 +58,41 @@ def ensure_dirs():
         os.makedirs(d, exist_ok=True)
 
 
+def normalize_state_col(df):
+    """Ensure 'state' column is 2-digit zero-padded string, no duplicates."""
+    df["state"] = df["state"].astype(str).str.strip().str.replace(r"\.0$", "", regex=True).str.zfill(2)
+    # Filter to 50 states only
+    df = df[df["state"].isin(STATE_FIPS.keys())].copy()
+    # Drop duplicate state rows (keep first)
+    if df["state"].duplicated().any():
+        print(f"  WARNING: dropping {df['state'].duplicated().sum()} duplicate state rows")
+        df = df.drop_duplicates(subset=["state"], keep="first")
+    return df
+
+
+def assert_50_rows(df, label):
+    """Fail fast if a DataFrame does not have exactly 50 state rows."""
+    n = len(df)
+    if n != 50:
+        raise ValueError(
+            f"ASSERTION FAILED: {label} has {n} rows, expected 50. "
+            f"States present: {sorted(df['state'].unique())}"
+        )
+
+
+def safe_merge(left, right, label):
+    """Left-merge on 'state' with row-count assertion."""
+    n_before = len(left)
+    result = left.merge(right, on="state", how="left")
+    if len(result) != n_before:
+        raise ValueError(
+            f"MERGE EXPANSION: {label} merge changed row count "
+            f"from {n_before} to {len(result)}. "
+            f"Right-side likely has duplicate state keys."
+        )
+    return result
+
+
 def section(title):
     print(f"\n{'='*60}")
     print(f"  {title}")
@@ -121,11 +156,10 @@ def main():
 
     log("  Building migration DVs...")
     df_dvs = build_migration_dvs(df_in, df_out, df_pop)
+    df_dvs = normalize_state_col(df_dvs)
     save_interim(df_dvs, "migration_dvs")
-    n_states = len(df_dvs)
-    log(f"  Migration DVs: {n_states} states, {len(df_dvs.columns)} columns")
-    if n_states != 50:
-        log(f"  WARNING: Expected 50 states, got {n_states}")
+    assert_50_rows(df_dvs, "migration_dvs")
+    log(f"  Migration DVs: {len(df_dvs)} states, {len(df_dvs.columns)} columns")
     completed_vars.append("Migration DVs (all 5 age groups)")
 
     # ── 2. ACS simple IVs ─────────────────────────────────────────────
@@ -137,6 +171,8 @@ def main():
     # Rename to friendly names
     rename_map = {v: k for k, v in ACS_SIMPLE_VARS.items()}
     df_acs_simple = df_acs_simple.rename(columns=rename_map)
+    df_acs_simple = normalize_state_col(df_acs_simple)
+    assert_50_rows(df_acs_simple, "acs_simple_ivs")
     log(f"  ACS simple IVs: {list(ACS_SIMPLE_VARS.keys())}")
     completed_vars.extend(["POP", "MED_RENT", "MED_HOMEVAL"])
 
@@ -317,7 +353,8 @@ def main():
 
     # Add LAND_AREA and POP_DENS
     if df_land is not None:
-        df_ivs = df_ivs.merge(df_land[["state", "LAND_AREA"]], on="state", how="left")
+        df_land = normalize_state_col(df_land)
+        df_ivs = safe_merge(df_ivs, df_land[["state", "LAND_AREA"]], "LAND_AREA")
         df_ivs["POP_DENS"] = build_pop_density(df_ivs["POP"], df_ivs["LAND_AREA"])
         log("  Joined: LAND_AREA, POP_DENS")
     else:
@@ -330,34 +367,40 @@ def main():
         ("REAL_PCPI", df_pcpi, "REAL_PCPI"),
     ]:
         if df_bea is not None:
+            df_bea = normalize_state_col(df_bea)
             merge_cols = ["state", col]
             if "GDP_YEAR_NOTE" in df_bea.columns:
                 merge_cols.append("GDP_YEAR_NOTE")
-            df_ivs = df_ivs.merge(df_bea[merge_cols], on="state", how="left")
+            df_ivs = safe_merge(df_ivs, df_bea[merge_cols], label)
             log(f"  Joined: {label}")
         else:
             log(f"  SKIPPED join: {label}")
 
     # Add BLS variables
     if df_unemp is not None:
-        df_ivs = df_ivs.merge(df_unemp[["state", "UNEMP"]], on="state", how="left")
+        df_unemp = normalize_state_col(df_unemp)
+        df_ivs = safe_merge(df_ivs, df_unemp[["state", "UNEMP"]], "UNEMP")
         log("  Joined: UNEMP")
 
     if df_qcew is not None:
-        df_ivs = df_ivs.merge(
+        df_qcew = normalize_state_col(df_qcew)
+        df_ivs = safe_merge(
+            df_ivs,
             df_qcew[["state", "PRIV_EMP", "PRIV_ESTAB", "PRIV_AVG_PAY"]],
-            on="state", how="left"
+            "QCEW",
         )
         log("  Joined: PRIV_EMP, PRIV_ESTAB, PRIV_AVG_PAY")
 
     # Add PERMITS
     if df_permits is not None:
-        df_ivs = df_ivs.merge(df_permits[["state", "PERMITS"]], on="state", how="left")
+        df_permits = normalize_state_col(df_permits)
+        df_ivs = safe_merge(df_ivs, df_permits[["state", "PERMITS"]], "PERMITS")
         log("  Joined: PERMITS")
 
     # Add electricity
     if df_elec is not None:
-        df_ivs = df_ivs.merge(df_elec[["state", "ELEC_PRICE_TOT"]], on="state", how="left")
+        df_elec = normalize_state_col(df_elec)
+        df_ivs = safe_merge(df_ivs, df_elec[["state", "ELEC_PRICE_TOT"]], "ELEC_PRICE_TOT")
         log("  Joined: ELEC_PRICE_TOT")
 
     # Add state name
@@ -370,6 +413,7 @@ def main():
     section("16. Building analysis-ready table (DVs + IVs)")
 
     df_final = df_dvs.merge(df_ivs, on="state", how="inner")
+    assert_50_rows(df_final, "analysis_ready")
     save_processed(df_final, "analysis_ready")
     log(f"  Final table: {len(df_final)} states, {len(df_final.columns)} columns")
 
@@ -397,6 +441,30 @@ def main():
 
     # ── 18. Summary ───────────────────────────────────────────────────
     section("18. A2 Pipeline Summary")
+
+    # Cross-check: any "completed" variable that is 100% null in the final
+    # table should be reclassified as effectively failed.
+    iv_cols_expected = [
+        "POP", "MED_RENT", "MED_HOMEVAL", "COST_BURDEN_ALL", "VACANCY_RATE",
+        "TRANSIT_SHARE", "BA_PLUS", "LAND_AREA", "POP_DENS",
+        "GDP", "RPP", "REAL_PCPI", "UNEMP",
+        "PRIV_EMP", "PRIV_ESTAB", "PRIV_AVG_PAY",
+        "PERMITS", "ELEC_PRICE_TOT",
+    ]
+    all_null_vars = []
+    for col in iv_cols_expected:
+        if col in df_final.columns and df_final[col].isna().all():
+            all_null_vars.append(col)
+
+    if all_null_vars:
+        log(f"\n  WARNING: These columns are present but 100% null (data not actually loaded):")
+        for v in all_null_vars:
+            log(f"    ! {v}")
+        # Move from completed to failed
+        for v in all_null_vars:
+            if v in completed_vars:
+                completed_vars.remove(v)
+                failed_vars.append(f"{v} (100% null)")
 
     log(f"\n  Completed variables ({len(completed_vars)}):")
     for v in completed_vars:

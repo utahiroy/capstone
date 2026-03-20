@@ -181,6 +181,11 @@ def fetch_bea_regional(table_name, line_code, year, api_key, geo_fips="STATE"):
     )
     df["DataValue"] = pd.to_numeric(df["DataValue"], errors="coerce")
 
+    # Deduplicate: BEA may return both 5-digit and 2-digit FIPS for the same
+    # state. After normalizing to 2-digit, drop duplicates (keep first non-NA).
+    df = df.sort_values("DataValue", na_position="last")
+    df = df.drop_duplicates(subset=["state"], keep="first")
+
     return df[["state", "GeoName", "DataValue"]].reset_index(drop=True)
 
 

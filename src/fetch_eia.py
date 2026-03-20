@@ -28,18 +28,25 @@ def fetch_electricity_price(api_key, year=2024):
 
     Returns DataFrame with columns: state, ELEC_PRICE_TOT (cents/kWh).
     """
-    params = {
-        "api_key": api_key,
-        "frequency": "annual",
-        "data[0]": "price",
-        "facets[sectorid][]": "ALL",
-        "start": str(year),
-        "end": str(year),
-        "sort[0][column]": "stateDescription",
-        "sort[0][direction]": "asc",
-        "length": "100",
-    }
-    resp = requests.get(EIA_BASE, params=params, timeout=60)
+    # EIA v2 API: pass api_key via X-API-Key header; build the query URL
+    # manually because requests encodes bracket-notation params incorrectly.
+    url = (
+        f"{EIA_BASE}"
+        f"?frequency=annual"
+        f"&data[0]=price"
+        f"&facets[sectorid][]=ALL"
+        f"&start={year}"
+        f"&end={year}"
+        f"&sort[0][column]=stateDescription"
+        f"&sort[0][direction]=asc"
+        f"&length=100"
+    )
+    headers = {"X-API-Key": api_key}
+    resp = requests.get(url, headers=headers, timeout=60)
+    # If header auth fails, retry with api_key as query param
+    if resp.status_code in (401, 403):
+        url += f"&api_key={api_key}"
+        resp = requests.get(url, timeout=60)
     resp.raise_for_status()
     payload = resp.json()
 

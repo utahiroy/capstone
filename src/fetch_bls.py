@@ -8,13 +8,13 @@ from src.constants import STATE_FIPS
 
 # ── LAUS: Annual average unemployment rate ────────────────────────────
 
-# BLS LAUS series ID pattern: LASST{FIPS}0000000000003
-#   - LA = Local Area
-#   - S  = statewide
-#   - ST = seasonal type (S = not seasonally adjusted, U = seasonally adjusted)
+# BLS LAUS series ID pattern: LAUST{FIPS}0000000000003
+#   - LA  = Local Area
+#   - U   = not seasonally adjusted (S = seasonally adjusted)
+#   - ST  = statewide
 #   - {FIPS} = 2-digit state FIPS
 #   - 0000000000003 = measure code 03 = unemployment rate
-# Period M13 = annual average.
+# Period M13 = annual average (only in not-seasonally-adjusted series).
 
 LAUS_API = "https://api.bls.gov/publicAPI/v2/timeseries/data/"
 
@@ -34,7 +34,9 @@ def fetch_unemployment(year=2024):
     batch_size = 25
     for i in range(0, len(fips_list), batch_size):
         batch_fips = fips_list[i : i + batch_size]
-        series_ids = [f"LASST{fips}0000000000003" for fips in batch_fips]
+        # LAUST = not seasonally adjusted; M13 annual average only exists
+        # in the unadjusted series (LASST is seasonally adjusted, no M13).
+        series_ids = [f"LAUST{fips}0000000000003" for fips in batch_fips]
 
         payload = {
             "seriesid": series_ids,
@@ -50,7 +52,7 @@ def fetch_unemployment(year=2024):
 
         for series in data["Results"]["series"]:
             sid = series["seriesID"]
-            # Extract FIPS from series ID: LASST{2-digit FIPS}00...
+            # Extract FIPS from series ID: LAUST{2-digit FIPS}00...
             state_fips = sid[5:7]
             for obs in series["data"]:
                 if obs["period"] == "M13":  # annual average
@@ -81,7 +83,8 @@ def fetch_qcew(year=2024):
     resp = requests.get(url, timeout=120)
     resp.raise_for_status()
 
-    df = pd.read_csv(io.StringIO(resp.text))
+    # Force area_fips to string so leading zeros are preserved (e.g. "01000")
+    df = pd.read_csv(io.StringIO(resp.text), dtype={"area_fips": str})
 
     # Filter: private ownership (own_code=5), state level (agglvl_code=50),
     # all sizes (size_code=0)
@@ -93,7 +96,7 @@ def fetch_qcew(year=2024):
     df = df[mask].copy()
 
     # Extract 2-digit state FIPS from area_fips (format: "XX000")
-    df["state"] = df["area_fips"].astype(str).str[:2]
+    df["state"] = df["area_fips"].str.strip().str.zfill(5).str[:2]
 
     # Keep only 50 states
     df = df[df["state"].isin(STATE_FIPS.keys())].copy()

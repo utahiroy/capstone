@@ -6,80 +6,90 @@ import pandas as pd
 
 from src.constants import STATE_FIPS
 
-# Census BPS state annual data — CSV download
-# The URL pattern for annual state-level data:
-BPS_URL = "https://www2.census.gov/econ/bps/State/st{year}a.txt"
-# Alternative formats the Census may use
-BPS_ALT_URLS = [
-    "https://www2.census.gov/econ/bps/State/st{year}a.txt",
-    "https://www2.census.gov/econ/bps/State/st_annual_{year}.csv",
+# Census BPS state annual data — multiple URL patterns by year
+BPS_URL_PATTERNS = [
+    "https://www2.census.gov/econ/bps/State/st{yy}a.txt",
+    "https://www2.census.gov/econ/bps/State/st{yyyy}a.txt",
+    "https://www2.census.gov/econ/bps/State/st_annual_{yyyy}.csv",
 ]
 
+# Census Building Permits API (JSON) — more reliable than text downloads
+BPS_API_URL = "https://api.census.gov/data/timeseries/bps/houseunits"
 
-def fetch_permits(year=2024):
-    """Fetch total housing units authorized by building permits, state-level.
 
-    Returns DataFrame with columns: state, PERMITS.
+def _try_download_bps(year):
+    """Try to download the BPS text/CSV file from Census.
+
+    Returns (response, url) or (None, None) if all patterns fail.
     """
-    # Try each URL pattern
-    resp = None
-    for url_template in BPS_ALT_URLS:
-        url = url_template.format(year=str(year)[-2:])
+    yy = str(year)[-2:]
+    yyyy = str(year)
+    for pattern in BPS_URL_PATTERNS:
+        url = pattern.format(yy=yy, yyyy=yyyy)
         try:
             resp = requests.get(url, timeout=60)
-            if resp.status_code == 200:
-                break
+            if resp.status_code == 200 and len(resp.text) > 200:
+                return resp, url
         except requests.RequestException:
             continue
+    return None, None
 
-    # Also try with full year
-    if resp is None or resp.status_code != 200:
-        for url_template in BPS_ALT_URLS:
-            url = url_template.format(year=year)
-            try:
-                resp = requests.get(url, timeout=60)
-                if resp.status_code == 200:
-                    break
-            except requests.RequestException:
-                continue
 
-    if resp is None or resp.status_code != 200:
-        raise ValueError(
-            f"Could not download BPS state annual data for {year}. "
-            f"Tried multiple URL patterns. Census may use a different format."
-        )
+def _parse_bps_text(text, url):
+    """Parse BPS text/CSV download into a DataFrame with state+PERMITS columns.
 
-    print(f"  PERMITS: downloaded from {url}")
-
-    # Parse the fixed-width or CSV file
-    text = resp.text
-    # Try CSV first
+    The BPS state annual file is typically comma-separated with columns like:
+    state, total, 1-unit, 2-unit, 3-4 unit, 5+ units, ...
+    Some years use different header names or have extra header/footer rows.
+    """
+    # Try CSV parse, skipping bad lines
     try:
-        df = pd.read_csv(io.StringIO(text))
+        df = pd.read_csv(
+            io.StringIO(text),
+            dtype=str,              # read all as string to avoid FIPS int conversion
+            on_bad_lines="skip",
+        )
     except Exception:
-        # Try fixed-width
-        df = pd.read_fwf(io.StringIO(text))
+        try:
+            df = pd.read_fwf(io.StringIO(text), dtype=str)
+        except Exception as e:
+            raise ValueError(f"Cannot parse BPS file from {url}: {e}")
 
     # Normalize column names
     df.columns = [c.strip().lower().replace(" ", "_") for c in df.columns]
 
-    # Look for state FIPS column and total units column
-    # Common column names: "state_fips", "fips", "state", "statefips"
+    print(f"  PERMITS: columns = {list(df.columns)}")
+
+    # Find state FIPS column
     fips_col = None
-    for candidate in ["state_fips", "statefips", "fips", "state", "csa"]:
+    for candidate in ["state", "state_fips", "statefips", "fips", "code", "csa",
+                       "stfips", "fipstate"]:
         if candidate in df.columns:
             fips_col = candidate
             break
+    # Also try partial match
+    if fips_col is None:
+        for c in df.columns:
+            if "fips" in c or "state" in c:
+                fips_col = c
+                break
 
-    # Look for total units column
+    # Find total units column — the first numeric column after FIPS that represents
+    # total units authorized. Common names: total, units, total_units
     units_col = None
-    for candidate in ["total", "units", "total_units", "1-unit", "bldgs"]:
+    for candidate in ["total", "units", "total_units", "1-unit_units",
+                       "all_units", "tot", "bldgs"]:
         if candidate in df.columns:
             units_col = candidate
             break
+    # Fallback: use the second column if it looks numeric
+    if units_col is None and len(df.columns) >= 2 and fips_col == df.columns[0]:
+        candidate = df.columns[1]
+        test_vals = pd.to_numeric(df[candidate].str.replace(",", ""), errors="coerce")
+        if test_vals.notna().sum() > 30:
+            units_col = candidate
 
     if fips_col is None or units_col is None:
-        print(f"  PERMITS: columns available: {list(df.columns)}")
         raise ValueError(
             f"Cannot identify BPS columns. "
             f"fips_col={fips_col}, units_col={units_col}. "
@@ -88,13 +98,89 @@ def fetch_permits(year=2024):
 
     print(f"  PERMITS: using fips_col={fips_col}, units_col={units_col}")
 
-    df["state"] = df[fips_col].astype(str).str.zfill(2)
-    df["PERMITS"] = pd.to_numeric(df[units_col], errors="coerce")
+    # Normalize state FIPS to 2-digit zero-padded string
+    df["state"] = (
+        df[fips_col]
+        .astype(str)
+        .str.strip()
+        .str.replace(r"\.0$", "", regex=True)   # handle "1.0" from float conversion
+        .str.zfill(2)
+    )
 
-    # Filter to 50 states
+    # Parse units — remove commas, convert to numeric
+    df["PERMITS"] = pd.to_numeric(
+        df[units_col].astype(str).str.replace(",", "", regex=False).str.strip(),
+        errors="coerce",
+    )
+
+    # Filter to 50 states only
     df = df[df["state"].isin(STATE_FIPS.keys())].copy()
 
-    if len(df) != 50:
-        print(f"  WARNING: BPS returned {len(df)} states, expected 50")
+    # If multiple rows per state (sub-categories), take the max (state total row)
+    if df["state"].duplicated().any():
+        df = df.groupby("state", as_index=False)["PERMITS"].max()
 
     return df[["state", "PERMITS"]].sort_values("state").reset_index(drop=True)
+
+
+def _fetch_bps_api(year):
+    """Fallback: use Census BPS JSON API for state-level total permits.
+
+    This endpoint does not require an API key for basic queries.
+    """
+    params = {
+        "get": "units",
+        "for": "state:*",
+        "time": str(year),
+        "category_code": "TOTAL",
+    }
+    resp = requests.get(BPS_API_URL, params=params, timeout=60)
+    if resp.status_code != 200:
+        raise ValueError(
+            f"BPS API returned HTTP {resp.status_code}. "
+            f"URL: {BPS_API_URL}, params: {params}"
+        )
+    data = resp.json()
+    df = pd.DataFrame(data[1:], columns=data[0])
+    df["state"] = df["state"].astype(str).str.zfill(2)
+    df["PERMITS"] = pd.to_numeric(df["units"], errors="coerce")
+    df = df[df["state"].isin(STATE_FIPS.keys())].copy()
+    return df[["state", "PERMITS"]].sort_values("state").reset_index(drop=True)
+
+
+def fetch_permits(year=2024):
+    """Fetch total housing units authorized by building permits, state-level.
+
+    Strategy:
+    1. Try downloading the BPS state annual text/CSV file.
+    2. If download fails or returns <50 states, try Census BPS API.
+
+    Returns DataFrame with columns: state, PERMITS.
+    """
+    # Strategy 1: download text/CSV
+    resp, url = _try_download_bps(year)
+    if resp is not None:
+        print(f"  PERMITS: downloaded from {url}")
+        try:
+            df = _parse_bps_text(resp.text, url)
+            if len(df) == 50:
+                return df
+            print(f"  PERMITS: text parse returned {len(df)} states, trying API fallback")
+        except Exception as e:
+            print(f"  PERMITS: text parse failed ({e}), trying API fallback")
+
+    # Strategy 2: Census BPS API
+    print("  PERMITS: trying Census BPS API")
+    try:
+        df = _fetch_bps_api(year)
+        print(f"  PERMITS: API returned {len(df)} states")
+        if len(df) != 50:
+            print(f"  WARNING: BPS returned {len(df)} states, expected 50")
+        return df
+    except Exception as e:
+        print(f"  PERMITS: API also failed: {e}")
+
+    raise ValueError(
+        f"Could not fetch building permits for {year}. "
+        f"Both text download and API fallback failed."
+    )
