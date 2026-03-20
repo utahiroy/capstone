@@ -110,10 +110,19 @@ def fetch_bea_regional(table_name, line_code, year, api_key, geo_fips="STATE"):
     return df[["state", "GeoName", "DataValue"]].reset_index(drop=True)
 
 
-def fetch_gdp(api_key, year=2024):
+def fetch_gdp(api_key, year=2024, allow_fallback=False):
     """Fetch state GDP (all-industry total, current dollars).
 
-    Falls back to year-1 if the requested year returns no data.
+    Parameters
+    ----------
+    api_key : str
+    year : int
+        Must match the project year (2024).
+    allow_fallback : bool
+        If False (default), raises an error when the requested year is
+        unavailable. If True, retries with year-1 and tags the output
+        with a GDP_YEAR_NOTE column. Fallback is for debugging only and
+        must not be used in production pipeline runs.
     """
     try:
         df = fetch_bea_regional("SAGDP2N", line_code=1, year=year, api_key=api_key)
@@ -121,12 +130,20 @@ def fetch_gdp(api_key, year=2024):
             raise ValueError(f"All GDP values are NA for year {year}")
         return df.rename(columns={"DataValue": "GDP"})
     except ValueError as e:
-        print(f"  WARNING: GDP fetch for {year} failed: {e}")
+        if not allow_fallback:
+            raise ValueError(
+                f"GDP for {year} is unavailable from BEA. "
+                f"Original error: {e}\n"
+                f"This project is fixed to {year} cross-section only. "
+                f"Do not substitute a different year without explicit approval."
+            ) from e
+        # Fallback path — debug only
         fallback_year = year - 1
-        print(f"  Falling back to year {fallback_year}...")
+        print(f"  WARNING: GDP fetch for {year} failed: {e}")
+        print(f"  DEBUG FALLBACK to year {fallback_year} (allow_fallback=True)")
         df = fetch_bea_regional(
             "SAGDP2N", line_code=1, year=fallback_year, api_key=api_key
         )
         df = df.rename(columns={"DataValue": "GDP"})
-        df["GDP_YEAR_NOTE"] = f"fallback to {fallback_year}"
+        df["GDP_YEAR_NOTE"] = f"debug fallback to {fallback_year}"
         return df
