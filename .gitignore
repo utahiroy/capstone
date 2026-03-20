@@ -1,0 +1,50 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+*.egg
+.eggs/
+
+# Virtual environment
+venv/
+.venv/
+env/
+
+# API keys (never commit real keys)
+config/api_keys.py
+
+# Data directories (tracked via .gitkeep, not data files)
+data_raw/*
+!data_raw/.gitkeep
+data_interim/*
+!data_interim/.gitkeep
+data_processed/*
+!data_processed/.gitkeep
+
+# Smoke test outputs
+smoke_test_outputs/*
+!smoke_test_outputs/.gitkeep
+
+# Full-run outputs
+outputs/tables/*
+!outputs/tables/.gitkeep
+outputs/figures/*
+!outputs/figures/.gitkeep
+outputs/logs/*
+!outputs/logs/.gitkeep
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Jupyter
+.ipynb_checkpoints/
