@@ -298,37 +298,39 @@ def fetch_rpp(api_key, year=2024):
 def fetch_real_pcpi(api_key, year=2024):
     """Fetch Real Per Capita Personal Income for all states.
 
-    Tries LineCode=1 first. If that fails, uses metadata discovery
-    to find the correct LineCode.
+    BEA SARPI table line codes:
+        LineCode=1: Real personal income (millions of chained dollars) — TOTAL
+        LineCode=2: Population (persons)
+        LineCode=3: Per capita real personal income (chained dollars) — PER CAPITA
+
+    We use LineCode=3 directly. Expected values ~$40k–$80k per state.
 
     Returns DataFrame with columns: state, GeoName, REAL_PCPI.
     """
-    # Try LineCode=1 first (most common for summary line)
-    for lc in [1, 2, 3]:
-        try:
-            print(f"  Trying REAL_PCPI (SARPI, LineCode={lc}, Year={year})")
-            df = fetch_bea_regional(
-                "SARPI", line_code=lc, year=year, api_key=api_key
-            )
-            if df["DataValue"].isna().all():
-                continue
-            print(f"  OK: REAL_PCPI fetched with LineCode={lc}")
-            return df.rename(columns={"DataValue": "REAL_PCPI"})
-        except ValueError:
-            continue
+    lc = 3  # Per capita real personal income
+    print(f"  Fetching REAL_PCPI (SARPI, LineCode={lc}, Year={year})")
+    try:
+        df = fetch_bea_regional(
+            "SARPI", line_code=lc, year=year, api_key=api_key
+        )
+        if df["DataValue"].isna().all():
+            raise ValueError(f"All REAL_PCPI values are NA for year {year}")
+        print(f"  OK: REAL_PCPI fetched with LineCode={lc}")
+        return df.rename(columns={"DataValue": "REAL_PCPI"})
+    except ValueError:
+        pass
 
-    # All simple attempts failed — try metadata discovery
+    # Fallback: metadata discovery to diagnose
     try:
         line_codes = get_valid_line_codes(api_key, "SARPI")
         lc_info = ", ".join(
             f"{lc['Key']}={lc.get('Desc', '?')}" for lc in line_codes[:10]
         )
         raise ValueError(
-            f"SARPI fetch failed for LineCode 1-3, Year={year}. "
+            f"SARPI LineCode=3 failed for Year={year}. "
             f"Valid LineCodes: {lc_info}"
         )
     except Exception as e:
         raise ValueError(
-            f"SARPI fetch failed for Year={year}. "
-            f"Could not determine correct LineCode. Error: {e}"
+            f"SARPI fetch failed for Year={year}. Error: {e}"
         ) from e

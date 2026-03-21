@@ -251,7 +251,44 @@ def main():
             f.write("No special cautions identified.\n")
     print(f"\n  Saved: {path}")
 
-    # ── 5. Compact combined summary ──────────────────────────────────
+    # ── 5. State rankings for NET_RATE by age group ────────────────
+    print("\n--- State Rankings: NET_RATE (top/bottom 10) ---")
+    ranking_rows = []
+    for col in dv_rate:
+        ranked = (
+            df[["state", "state_name", col]]
+            .sort_values(col, ascending=False)
+            .reset_index(drop=True)
+        )
+        ag_label = col.replace("NET_RATE_", "")
+        for rank_pos, (_, row) in enumerate(ranked.iterrows(), 1):
+            ranking_rows.append({
+                "age_group": ag_label,
+                "rank": rank_pos,
+                "state": row["state"],
+                "state_name": row["state_name"],
+                "NET_RATE": round(row[col], 2),
+            })
+    ranking_df = pd.DataFrame(ranking_rows)
+    path = f"{OUTDIR}/a3_state_rankings_net_rate.csv"
+    ranking_df.to_csv(path, index=False)
+    print(f"  Saved: {path}")
+
+    # Print compact top/bottom 10 for each age group
+    for col in dv_rate:
+        ag_label = col.replace("NET_RATE_", "")
+        ranked = df[["state_name", col]].sort_values(col, ascending=False)
+        top5 = ranked.head(10)
+        bot5 = ranked.tail(10).iloc[::-1]
+        print(f"\n  {col}:")
+        print(f"    Top 10 (highest net in-migration rate):")
+        for _, r in top5.iterrows():
+            print(f"      {r['state_name']:20s} {r[col]:+8.2f}")
+        print(f"    Bottom 10 (highest net out-migration rate):")
+        for _, r in bot5.iterrows():
+            print(f"      {r['state_name']:20s} {r[col]:+8.2f}")
+
+    # ── 6. Compact combined summary ──────────────────────────────────
     # One-stop table: all variables with stats + diagnostics
     stats_all = summary_statistics(df, all_vars, "All")
     stats_all.index.name = "variable"
