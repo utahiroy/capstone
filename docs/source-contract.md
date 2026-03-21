@@ -218,12 +218,13 @@ This source is **not** used for the main age-group DVs.
 | Description | Real per capita personal income, state-level |
 | Source | BEA |
 | Dataset | Regional (SARPI) |
-| API | `https://apps.bea.gov/api/data/?datasetname=Regional&TableName=SARPI&LineCode=3&GeoFips=STATE&Year=2024&ResultFormat=JSON&UserID={key}` |
+| API | `https://apps.bea.gov/api/data/?datasetname=Regional&TableName=SARPI&LineCode={discovered}&GeoFips=STATE&Year=2024&ResultFormat=JSON&UserID={key}` |
 | Variable | Per capita real personal income (chained dollars) |
 | Unit | chained dollars |
 | Formula | direct read |
-| Line codes | LC=1: total real PI (millions); LC=2: population; **LC=3: per capita real PI** |
-| Status | **confirmed** — 2024 data released February 2026. LineCode=3 confirmed as per capita series. Prior code erroneously used LC=1 (total real PI in millions), producing values ~100x–1000x too large. Fixed to LC=3. |
+| LineCode discovery | Runtime: `GetParameterValuesFiltered(TableName=SARPI, TargetParameter=LineCode)` → match description containing "per capita" + "personal income", excluding percent-change lines. |
+| Sanity check | Median must be in $15k–$150k range (plausible per-capita). Pipeline fails loudly if violated. |
+| Status | **runtime-discovered** — SARPI table covers both Real PI and Real PCE with many line codes. Hardcoded LC assumptions (LC=1, LC=3) both returned wrong series. Now uses metadata-driven discovery + sanity check. |
 
 ---
 

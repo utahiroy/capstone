@@ -295,42 +295,116 @@ def fetch_rpp(api_key, year=2024):
     return df.rename(columns={"DataValue": "RPP"})
 
 
+def _discover_sarpi_per_capita_lc(api_key):
+    """Query BEA metadata to find the SARPI LineCode for per capita real PI.
+
+    The SARPI table covers both Real Personal Income and Real PCE,
+    so it has many line codes.  We match the one whose description
+    contains "per capita" AND "personal income" (case-insensitive),
+    excluding any percent-change lines.
+
+    Returns (line_code_key: str, description: str).
+    Raises ValueError if no match is found.
+    """
+    line_codes = get_valid_line_codes(api_key, "SARPI")
+    print(f"  SARPI metadata: {len(line_codes)} line codes discovered:")
+    for lc in line_codes:
+        print(f"    LC={lc['Key']:>3s}: {lc.get('Desc', '?')}")
+
+    # Match: description must contain "per capita" AND "personal income",
+    # and must NOT be a percent-change line.
+    candidates = []
+    for lc in line_codes:
+        desc = lc.get("Desc", "").lower()
+        key = lc["Key"]
+        if "per capita" in desc and "personal income" in desc:
+            # Exclude percent-change lines
+            if "percent" not in desc and "change" not in desc:
+                candidates.append((key, lc.get("Desc", "")))
+
+    if len(candidates) == 1:
+        chosen_key, chosen_desc = candidates[0]
+        print(f"  SARPI: matched per-capita real PI → LC={chosen_key}: {chosen_desc}")
+        return chosen_key, chosen_desc
+
+    if len(candidates) > 1:
+        # Multiple matches — prefer the one with "dollars" or shorter desc
+        for key, desc in candidates:
+            if "dollar" in desc.lower():
+                print(f"  SARPI: multiple matches, chose → LC={key}: {desc}")
+                return key, desc
+        # Fall back to first candidate
+        key, desc = candidates[0]
+        print(f"  SARPI: multiple matches, defaulting → LC={key}: {desc}")
+        return key, desc
+
+    # No "per capita" + "personal income" match found
+    all_info = "; ".join(f"LC={lc['Key']}={lc.get('Desc', '?')}" for lc in line_codes)
+    raise ValueError(
+        f"Cannot find per-capita real personal income line in SARPI. "
+        f"Available: {all_info}"
+    )
+
+
+# Plausible range for state-level per capita real personal income (chained $).
+# US average is roughly $55k–$65k; state range roughly $35k–$90k.
+# We use a generous band to catch obvious mismatches (e.g. total PI in millions).
+_REAL_PCPI_PLAUSIBLE_MIN = 15_000   # well below poorest state
+_REAL_PCPI_PLAUSIBLE_MAX = 150_000  # well above richest state
+
+
+def _assert_real_pcpi_plausible(df):
+    """Sanity check: fail if REAL_PCPI values look like total PI, not per capita.
+
+    Checks that the median is within a plausible per-capita range.
+    """
+    median_val = df["REAL_PCPI"].median()
+    min_val = df["REAL_PCPI"].min()
+    max_val = df["REAL_PCPI"].max()
+    print(f"  REAL_PCPI sanity check: min={min_val:,.0f}, "
+          f"median={median_val:,.0f}, max={max_val:,.0f}")
+
+    if median_val > _REAL_PCPI_PLAUSIBLE_MAX:
+        raise ValueError(
+            f"REAL_PCPI SANITY CHECK FAILED: median={median_val:,.0f} "
+            f"exceeds plausible per-capita max ({_REAL_PCPI_PLAUSIBLE_MAX:,}). "
+            f"This looks like total real personal income, not per capita. "
+            f"Check the SARPI LineCode."
+        )
+    if median_val < _REAL_PCPI_PLAUSIBLE_MIN:
+        raise ValueError(
+            f"REAL_PCPI SANITY CHECK FAILED: median={median_val:,.0f} "
+            f"is below plausible per-capita min ({_REAL_PCPI_PLAUSIBLE_MIN:,}). "
+            f"Check the SARPI LineCode."
+        )
+    print(f"  REAL_PCPI sanity check: PASSED (median in plausible per-capita range)")
+
+
 def fetch_real_pcpi(api_key, year=2024):
     """Fetch Real Per Capita Personal Income for all states.
 
-    BEA SARPI table line codes:
-        LineCode=1: Real personal income (millions of chained dollars) — TOTAL
-        LineCode=2: Population (persons)
-        LineCode=3: Per capita real personal income (chained dollars) — PER CAPITA
-
-    We use LineCode=3 directly. Expected values ~$40k–$80k per state.
+    Strategy:
+    1. Query BEA GetParameterValuesFiltered to discover all SARPI line codes.
+    2. Match the line whose description explicitly says "per capita" +
+       "personal income" (not PCE, not percent change).
+    3. Fetch that line code.
+    4. Sanity-check: median must be in plausible per-capita range ($15k–$150k).
 
     Returns DataFrame with columns: state, GeoName, REAL_PCPI.
     """
-    lc = 3  # Per capita real personal income
-    print(f"  Fetching REAL_PCPI (SARPI, LineCode={lc}, Year={year})")
-    try:
-        df = fetch_bea_regional(
-            "SARPI", line_code=lc, year=year, api_key=api_key
-        )
-        if df["DataValue"].isna().all():
-            raise ValueError(f"All REAL_PCPI values are NA for year {year}")
-        print(f"  OK: REAL_PCPI fetched with LineCode={lc}")
-        return df.rename(columns={"DataValue": "REAL_PCPI"})
-    except ValueError:
-        pass
+    print(f"  Discovering SARPI line codes via BEA metadata...")
+    lc_key, lc_desc = _discover_sarpi_per_capita_lc(api_key)
 
-    # Fallback: metadata discovery to diagnose
-    try:
-        line_codes = get_valid_line_codes(api_key, "SARPI")
-        lc_info = ", ".join(
-            f"{lc['Key']}={lc.get('Desc', '?')}" for lc in line_codes[:10]
-        )
+    print(f"  Fetching REAL_PCPI (SARPI, LineCode={lc_key}, Year={year})")
+    print(f"    Line description: {lc_desc}")
+    df = fetch_bea_regional(
+        "SARPI", line_code=lc_key, year=year, api_key=api_key
+    )
+    if df["DataValue"].isna().all():
         raise ValueError(
-            f"SARPI LineCode=3 failed for Year={year}. "
-            f"Valid LineCodes: {lc_info}"
+            f"All REAL_PCPI values are NA for SARPI LC={lc_key} Year={year}"
         )
-    except Exception as e:
-        raise ValueError(
-            f"SARPI fetch failed for Year={year}. Error: {e}"
-        ) from e
+
+    df = df.rename(columns={"DataValue": "REAL_PCPI"})
+    _assert_real_pcpi_plausible(df)
+    return df

@@ -121,4 +121,38 @@ the primary counts.
 
 ---
 
-*Last updated: Phase A2 completion (2024 cross-section build).*
+## 5. REAL_PCPI — BEA SARPI Runtime LineCode Discovery
+
+**Source:** BEA Regional API, table `SARPI`
+
+**Problem history:**
+The SARPI table covers both Real Personal Income (PI) and Real Personal
+Consumption Expenditures (PCE) by state.  It has many line codes — not just
+3.  Two hardcoded attempts failed:
+
+1. `LineCode=1` → returned total real personal income (millions of chained $).
+   Values: mean ~$401k, max ~$2.5M.  This is aggregate state PI, not per capita.
+2. `LineCode=3` → returned another aggregate series (possibly real PCE or
+   another PI subcomponent).  Values: mean ~$321k, max ~$1.9M.  Still not
+   per capita.
+
+**Current approach — runtime metadata discovery:**
+
+1. Call `GetParameterValuesFiltered(TableName=SARPI, TargetParameter=LineCode)`
+   to retrieve all available line codes with descriptions.
+2. Log every discovered line code and description to the build log.
+3. Match the line whose description contains both `"per capita"` and
+   `"personal income"` (case-insensitive), excluding any percent-change lines.
+4. Fetch only that line code.
+5. **Sanity check:** verify that the median state value is in the range
+   $15,000–$150,000.  If outside this range, the pipeline fails with a clear
+   error message identifying the mismatch.
+
+**Why runtime discovery:**
+BEA may reorder or renumber line codes across table vintages.  By matching
+on the human-readable description rather than a hardcoded integer, the
+pipeline is robust to such renumbering.
+
+---
+
+*Last updated: Phase A3 (REAL_PCPI runtime discovery fix).*
