@@ -194,38 +194,69 @@ Reporter ACS 2024 1-year metadata.
 ## 8. CRIME_VIOLENT_RATE — FBI CDE API (Provisional)
 
 **Source:** FBI Crime Data Explorer, UCR estimated state-level data
-**API:** `https://api.usa.gov/crime/fbi/sapi/api/estimates/states/{abbr}/{year}/{year}`
 **Key:** DATA_GOV_API_KEY (free from https://api.data.gov/signup/)
+
+**Endpoint cascade (tried in order):**
+
+1. **CDE endpoint (current, post-July 2025):**
+   `https://api.usa.gov/crime/fbi/cde/estimate/state/{abbr}/violent-crime?from={year}&to={year}&API_KEY={key}`
+   The FBI migrated endpoints in July 2025.  The CDE base is the current
+   public path.
+
+2. **SAPI endpoint (legacy fallback):**
+   `https://api.usa.gov/crime/fbi/sapi/api/estimates/states/{abbr}/{year}/{year}?api_key={key}`
+   This was the original public API path.  It returned HTTP 403 during
+   the prior pipeline run (likely due to the July 2025 migration).
+
+3. **CSV fallback:**
+   If both API methods fail, place a CSV at `data_raw/fbi_crime_state_2024.csv`
+   with columns `state_abbr, violent_crime, population` (or pre-computed
+   `state, CRIME_VIOLENT_RATE`).
 
 **Extraction:**
 The API is called once per state (50 calls).  Each call returns a JSON
-object with `results` containing records keyed by year.  Fields used:
-`violent_crime` (count), `population`.
+response.  The code handles multiple response formats: list of records,
+dict with `results` key, and varying field names (`violent_crime` or
+`value`; `year` or `data_year`).
 
 **Rate formula:** `CRIME_VIOLENT_RATE = 100000 * violent_crime / population`
 
 **Retry logic:** Up to 3 attempts per state with exponential backoff on
-rate limits (HTTP 429).
+rate limits (HTTP 429) and transient errors.  If a 403 or 404 is received,
+the entire endpoint method is abandoned and the next method is tried.
 
-**Manual CSV fallback:**
-If the API is down, place a CSV at `data_raw/fbi_crime_state_2024.csv`
-with columns `state_abbr, violent_crime, population` (or pre-computed
-`state, CRIME_VIOLENT_RATE`).
-
-**Why provisional:** The FBI CDE API has documented reliability issues.
-The data is the standard source (95.6% population coverage in 2024),
-but extraction depends on API availability.
+**Why provisional:** The CDE endpoint URL pattern is based on documented
+migration notices and working examples from other CDE endpoints, but the
+exact response JSON structure for the estimates endpoint has not been
+validated against live data in a successful pipeline run.
 
 ---
 
 ## 9. NRI_RISK_INDEX — FEMA County-to-State Aggregation (Provisional)
 
-**Source:** FEMA National Risk Index v1.20 (December 2025), county-level CSV
-**Download:** https://hazards.fema.gov/nri/data-resources
+**Source:** FEMA National Risk Index v1.20 (December 2025), county-level data
+
+**Retrieval cascade (tried in order):**
+
+1. **OpenFEMA paginated JSON API (primary):**
+   `https://www.fema.gov/api/open/v1/NationalRiskIndexCounty?$select=STATEFIPS,STCOFIPS,STATE,COUNTY,POPULATION,RISK_SCORE,RISK_RATNG&$top=10000&$skip=N`
+   No API key required.  Paginated with `$top`/`$skip` (max 10,000 per call).
+
+2. **OpenFEMA bulk CSV download:**
+   `https://www.fema.gov/api/open/v1/NationalRiskIndexCounty.csv`
+   Full download, no pagination needed.
+
+3. **Legacy hazards.fema.gov URLs (fallback):**
+   `https://hazards.fema.gov/nri/Content/StaticDocuments/DataDownload/NRI_Table_Counties/NRI_Table_Counties.csv`
+   These URLs were guessed and failed in the prior pipeline run.
+
+4. **Local CSV fallback:**
+   If all downloads fail, place a county-level CSV at
+   `data_raw/nri_counties_raw.csv` manually.
 
 **Key columns used:**
 - `STATEFIPS` — 2-digit state FIPS
-- `POPULATION` — county population from Hazus 6.1
+- `POPULATION` — county population from Hazus
 - `RISK_SCORE` — composite overall risk score (0–100 percentile among counties)
 
 **Aggregation method:**
@@ -234,6 +265,14 @@ Population-weighted mean:
 
 Counties with missing RISK_SCORE or zero population are excluded.
 
+**Vintage exception:**
+NRI v1.20 was released December 2025.  This is a documented exception to the
+project's 2024-only cross-section design.  Justification: the NRI is not
+published annually; it is an irregularly updated composite index based on
+multi-year hazard records and Census 2020 population.  NRI scores change slowly
+and are a reasonable proxy for 2024 conditions.  The prior version (v1.19.0)
+was released March 2023.  This exception must be disclosed in the final report.
+
 **Why provisional:**
 1. FEMA does not provide a direct state-level composite Risk Index.
 2. The population-weighted mean is a project decision.
@@ -241,6 +280,8 @@ Counties with missing RISK_SCORE or zero population are excluded.
    "average risk exposure" but is not a true state-level percentile.
 4. Alternative aggregation methods (unweighted mean, EAL-based) could
    produce different rankings.
+5. The OpenFEMA API response structure has not been validated in a
+   successful pipeline run.
 
 **Caching:** Downloaded county CSV is saved to `data_raw/nri_counties_raw.csv`
 and reused on subsequent runs.  Delete the cached file to force re-download.

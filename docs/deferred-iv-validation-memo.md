@@ -12,8 +12,8 @@
 |---|---|---|---|
 | COMMUTE_MED | **Verified** | ACS 2024 1-year B08303 | Grouped-median interpolation from travel-time bins |
 | UNINSURED | **Verified** | ACS 2024 1-year S2701 (primary) / B27010 (fallback) | Direct percent read or computed from counts |
-| CRIME_VIOLENT_RATE | **Provisional** | FBI CDE API (estimates endpoint) | API call per state; CSV manual fallback available |
-| NRI_RISK_INDEX | **Provisional** | FEMA NRI v1.20 county-level CSV | Population-weighted mean of county RISK_SCORE |
+| CRIME_VIOLENT_RATE | **Provisional** | FBI CDE API (CDE endpoint, post-July 2025) | Per-state API calls; SAPI legacy fallback; CSV manual fallback |
+| NRI_RISK_INDEX | **Provisional** | FEMA NRI v1.20 via OpenFEMA API (Dec 2025 vintage) | Population-weighted mean of county RISK_SCORE; **2025-vintage exception** |
 
 ---
 
@@ -112,15 +112,20 @@ Estimated violent crime rate per 100,000 population. Violent crime = murder and 
 
 ### Source
 - **Agency**: FBI Crime Data Explorer (CDE)
-- **API**: `https://api.usa.gov/crime/fbi/sapi/api/estimates/states/{state_abbr}/{year}/{year}`
+- **Primary API (CDE, current)**: `https://api.usa.gov/crime/fbi/cde/estimate/state/{abbr}/violent-crime?from={year}&to={year}&API_KEY={key}`
+- **Legacy API (SAPI, fallback)**: `https://api.usa.gov/crime/fbi/sapi/api/estimates/states/{abbr}/{year}/{year}?api_key={key}`
+- **CSV fallback**: `data_raw/fbi_crime_state_2024.csv`
 - **Key**: DATA_GOV_API_KEY (free from https://api.data.gov/signup/)
 - **Data year**: 2024
 
+### Endpoint migration (July 2025)
+In July 2025, the FBI migrated specific API endpoints. The legacy SAPI base (`/crime/fbi/sapi/`) returned HTTP 403 during the prior pipeline run. The current code tries the CDE base (`/crime/fbi/cde/`) first, falls back to SAPI, then to CSV.
+
 ### Why provisional
-1. The FBI CDE API has been documented as unreliable (timeouts, rate limits).
-2. The API returns SRS-estimated data. With the FBI's transition from SRS to NIBRS, the estimates methodology is evolving.
+1. The CDE endpoint URL pattern has not yet been validated against live data in a successful pipeline run.
+2. The API returns estimated data. With the FBI's transition from SRS to NIBRS, the estimates methodology is evolving.
 3. 2024 data covers 95.6% of the U.S. population (not 100%).
-4. If the API fails, a manual CSV fallback is available at `data_raw/fbi_crime_state_2024.csv`.
+4. If both API endpoints fail, a manual CSV fallback is available at `data_raw/fbi_crime_state_2024.csv`.
 
 ### Formula
 If the API returns `violent_crime` (count) and `population`:
@@ -146,8 +151,22 @@ Population-weighted mean of county-level composite Risk Index score, aggregated 
 
 ### Source
 - **Agency**: FEMA National Risk Index, v1.20 (December 2025)
-- **Download**: County-level CSV from https://hazards.fema.gov/nri/data-resources
+- **Primary retrieval**: OpenFEMA REST API (no key required)
+  - Endpoint: `https://www.fema.gov/api/open/v1/NationalRiskIndexCounty`
+  - Paginated JSON (up to 10,000 records per request via `$top`/`$skip`)
+  - Bulk CSV: append `.csv` to the endpoint URL
+- **Legacy fallback**: `https://hazards.fema.gov/nri/data-resources` download URLs
+- **Local fallback**: `data_raw/nri_counties_raw.csv` (if placed manually)
 - **Geographic level**: County (3,000+ records nationwide)
+
+### Methodological exception: 2025-vintage source material
+The NRI v1.20 dataset was released in December 2025. This is a **known exception** to the project's 2024-only cross-section design. Justification:
+1. The NRI is not published annually — it is an irregularly updated composite index. There is no "2024 edition."
+2. NRI v1.20 is the most recent version available. The prior version (v1.19.0) was released in March 2023.
+3. The NRI uses underlying data from multiple years (Census 2020 population, historical hazard records, etc.) — it is inherently a multi-year composite, not a single-year snapshot.
+4. Because the NRI measures structural natural hazard risk exposure (geology, climate, infrastructure), the scores change slowly. The v1.20 scores are a reasonable proxy for 2024 conditions.
+
+This exception should be disclosed in any final report or paper using this variable.
 
 ### Why provisional
 1. **FEMA does not provide a direct state-level composite Risk Index score.** The NRI provides county and Census tract level scores only.
@@ -157,6 +176,7 @@ Population-weighted mean of county-level composite Risk Index score, aggregated 
    - State-level Expected Annual Loss (EAL) — different construct
    - Maximum county score per state
 4. RISK_SCORE is a percentile ranking (0–100) relative to all counties. Averaging percentile ranks is a simplification; the resulting state-level number is NOT a true percentile among states.
+5. The OpenFEMA API response structure has not yet been validated in a successful pipeline run.
 
 ### Aggregation formula
 ```
@@ -189,10 +209,11 @@ Index score (weighted average of county percentile rankings).
 - **UNINSURED**: Direct percent from ACS S2701 subject table with cross-check, or computed from B27010 detail table as fallback.
 
 ### Provisional implementations
-- **CRIME_VIOLENT_RATE**: FBI CDE API is the correct source, but API reliability is uncertain. Manual CSV fallback is available. The data itself (2024 UCR estimates) is the standard source for this variable.
-- **NRI_RISK_INDEX**: Population-weighted county aggregation is a project-defined method. The resulting variable measures something different from FEMA's official county-level RISK_SCORE. This should be interpreted as "average natural hazard risk exposure of the state's population" rather than "state risk ranking."
+- **CRIME_VIOLENT_RATE**: FBI CDE API is the correct source. Code now tries the current CDE endpoint (post-July 2025 migration), then legacy SAPI, then CSV fallback. Manual CSV fallback is available. The data itself (2024 UCR estimates) is the standard source for this variable.
+- **NRI_RISK_INDEX**: Data retrieved via OpenFEMA REST API (county-level, no key required). Population-weighted county aggregation is a project-defined method. The resulting variable measures "average natural hazard risk exposure of the state's population," not a true state-level percentile. **Uses 2025-vintage NRI v1.20 data** — this is a documented methodological exception to the 2024-only design (see section 4).
 
 ### Unresolved ambiguities
 None that block implementation, but:
-1. CRIME_VIOLENT_RATE API may fail at runtime; manual data entry from the UCR summary report would be needed.
+1. CRIME_VIOLENT_RATE CDE endpoint response format has not been validated against live data. If the API returns an unexpected JSON structure, parsing may need adjustment.
 2. NRI_RISK_INDEX aggregation method could be revisited (e.g., EAL-based instead of RISK_SCORE-based).
+3. NRI_RISK_INDEX uses 2025-vintage data — this must be disclosed in the final report.
