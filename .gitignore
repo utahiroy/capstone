@@ -34,6 +34,8 @@ outputs/figures/*
 !outputs/figures/.gitkeep
 outputs/logs/*
 !outputs/logs/.gitkeep
+outputs/viz/*
+!outputs/viz/.gitkeep
 
 # IDE
 .vscode/

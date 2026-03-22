@@ -77,6 +77,15 @@ python -m scripts.descriptive_a3
 
 # A4: Spearman rank correlation screening
 python -m scripts.spearman_a4
+
+# A5: Single-variable OLS (22 IVs × 5 DVs)
+python -m scripts.single_ols_a5
+
+# A6: Multiple regression (age-group-specific models)
+python -m scripts.multiple_ols_a6
+
+# A7: Visualization prototypes (interactive HTML)
+python -m scripts.viz_prototypes
 ```
 
 ## Data
