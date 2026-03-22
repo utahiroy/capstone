@@ -498,12 +498,13 @@ BA_PLUS = 100 * (B15003_022E + B15003_023E + B15003_024E + B15003_025E) / B15003
 | Description | Violent crime rate per 100,000 population |
 | Source | FBI Crime Data Explorer (CDE) |
 | URL | https://cde.ucr.cjis.gov/ |
-| API | FBI CDE API: `https://api.usa.gov/crime/fbi/sapi/api/estimates/states/{state_abbr}/?api_key={key}` |
-| Alt API key | Free key from https://api.data.gov/signup/ |
-| Fallback | Bulk CSV/Excel download from https://cde.ucr.cjis.gov/LATEST/webapp/#/pages/downloads |
+| Primary API (CDE, current) | `https://api.usa.gov/crime/fbi/cde/estimate/state/{abbr}/violent-crime?from={year}&to={year}&API_KEY={key}` |
+| Legacy API (SAPI, fallback) | `https://api.usa.gov/crime/fbi/sapi/api/estimates/states/{abbr}/{year}/{year}?api_key={key}` |
+| CSV fallback | `data_raw/fbi_crime_state_2024.csv` (manually prepared) |
+| API key | DATA_GOV_API_KEY — free from https://api.data.gov/signup/ |
 | Unit | per 100,000 |
-| Formula | direct read (pre-computed rate) or compute from counts + population |
-| Status | **provisional** — 2024 data confirmed released (95.6% population coverage). Implementation uses FBI CDE API estimates endpoint: `api/estimates/states/{abbr}/{year}/{year}`. API returns violent_crime count and population; rate computed as `100000 * count / pop`. CSV manual fallback at `data_raw/fbi_crime_state_2024.csv`. Provisional because API reliability is uncertain. |
+| Formula | `100000 * violent_crime / population` |
+| Status | **provisional** — In July 2025, the FBI migrated API endpoints; the legacy SAPI path returned HTTP 403. Code now tries CDE endpoint first, then SAPI, then CSV fallback. The successful local pipeline run used the CSV fallback. The CDE endpoint response format has not been validated against live data. 2024 data covers 95.6% of U.S. population. |
 
 ---
 
@@ -514,15 +515,17 @@ BA_PLUS = 100 * (B15003_022E + B15003_023E + B15003_024E + B15003_025E) / B15003
 | ID | NRI_RISK_INDEX |
 | Description | FEMA National Risk Index, overall composite risk score, state-level |
 | Source | FEMA / OpenFEMA |
-| URL | https://www.fema.gov/about/openfema/data-sets/national-risk-index-data |
-| Access | CSV download from https://hazards.fema.gov/nri/data-resources |
+| Primary API | OpenFEMA REST API (no key): `https://www.fema.gov/api/open/v1/NationalRiskIndexCounty` (paginated JSON or `.csv` bulk) |
+| Legacy URL | https://hazards.fema.gov/nri/data-resources (download links failed in prior run) |
+| Local fallback | `data_raw/nri_counties_raw.csv` (manually placed county-level CSV) |
 | Version | v1.20 (December 2025) — latest available |
 | Variable | RISK_SCORE (composite overall risk) |
-| Unit | index score |
-| Geographic level | **County and tract only** — state-level composite Risk Index is NOT directly provided |
-| State alternative | State-level Expected Annual Loss (EAL) IS provided directly |
+| Unit | index score (weighted average of county percentile rankings) |
+| Geographic level | **County and tract only** — state-level composite Risk Index is NOT directly provided by FEMA |
+| State alternative | State-level Expected Annual Loss (EAL) IS provided directly (different construct, not used) |
 | Formula | Population-weighted mean of county RISK_SCORE: `sum(county_pop * county_RISK_SCORE) / sum(county_pop)` |
-| Status | **provisional** — Implemented as population-weighted mean of county-level composite RISK_SCORE from NRI v1.20 (December 2025). This is a project-defined aggregation, not an official FEMA state-level metric. RISK_SCORE is a 0–100 percentile ranking among all U.S. counties. The weighted average approximates "mean natural hazard risk exposure of the state's population." Alternative: state-level EAL (different construct, not used). |
+| Vintage exception | **NRI v1.20 (Dec 2025) is a methodological exception to the project's 2024-only design.** The NRI is not published annually. The prior version (v1.19.0) was released March 2023. NRI uses multi-year underlying data (Census 2020 population, historical hazard records) and scores change slowly, making v1.20 a reasonable proxy for 2024 conditions. This must be disclosed in the final report. |
+| Status | **provisional** — Implemented as population-weighted mean of county-level composite RISK_SCORE. This is a project-defined aggregation, not an official FEMA state-level metric. RISK_SCORE is a 0–100 percentile ranking among all U.S. counties. The successful local pipeline run used a manually placed local CSV. The OpenFEMA API response structure has not been validated in a successful pipeline run. |
 
 ---
 
@@ -567,5 +570,5 @@ BA_PLUS = 100 * (B15003_022E + B15003_023E + B15003_024E + B15003_025E) / B15003
 
 | # | Variable | Caveat |
 |---|---|---|
-| 21 | CRIME_VIOLENT_RATE | FBI CDE API estimates endpoint implemented. API reliability uncertain; manual CSV fallback available. |
-| 22 | NRI_RISK_INDEX | Population-weighted mean of county RISK_SCORE. Project-defined aggregation, not official FEMA metric. |
+| 21 | CRIME_VIOLENT_RATE | FBI CDE API (CDE endpoint primary, SAPI legacy fallback, CSV manual fallback). Successful run used CSV fallback. CDE response format not yet validated live. |
+| 22 | NRI_RISK_INDEX | Pop-weighted mean of county RISK_SCORE via OpenFEMA API (local CSV fallback). Project-defined aggregation. **NRI v1.20 (Dec 2025) is a vintage exception to 2024-only design.** |
