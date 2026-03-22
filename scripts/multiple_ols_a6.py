@@ -152,7 +152,7 @@ def format_model_summary(result, model, vifs):
 
 
 def select_preferred(results):
-    """Select preferred model: highest adj_R², penalize max_VIF > 5, prefer lower BIC on ties."""
+    """Select preferred model: highest adj_R² among models with max_VIF < 10; prefer lower BIC on ties."""
     # Filter out models with extreme VIF
     viable = [r for r in results if r[0]["max_vif"] < 10]
     if not viable:
@@ -254,7 +254,10 @@ def main():
                 "bic": best_result["bic"],
                 "rmse": best_result["rmse"],
                 "max_vif": best_result["max_vif"],
+                "sign_check": best_result["sign_check"],
                 "selection_reason": best_result.get("notes", "") or "Highest adj_R2 with VIF<10",
+                "_model": best_model,
+                "_vifs": best_vifs,
             })
 
             print(f"\n  ** PREFERRED: {best_result['model_id']} — "
@@ -280,10 +283,40 @@ def main():
     print(f"\nSaved combined candidates: {path}")
 
     # ── Selected model summary ────────────────────────────────────
-    sel_df = pd.DataFrame(selected_models)
+    # Drop internal fields before saving
+    sel_export = [{k: v for k, v in s.items() if not k.startswith("_")}
+                  for s in selected_models]
+    sel_df = pd.DataFrame(sel_export)
     path = f"{OUTDIR}/a6_selected_models.csv"
     sel_df.to_csv(path, index=False)
     print(f"Saved selected models: {path}")
+
+    # ── Selected model coefficient-level table ─────────────────────
+    coef_rows = []
+    for s in selected_models:
+        model_obj = s["_model"]
+        vifs_dict = s["_vifs"]
+        ci = model_obj.conf_int()
+        for term in model_obj.params.index:
+            coef_rows.append({
+                "dv": s["dv"],
+                "age_group": s["age_group"],
+                "selected_model_id": s["selected_model_id"],
+                "formula": s["formula"],
+                "term": term,
+                "coef": round(model_obj.params[term], 6),
+                "std_err": round(model_obj.bse[term], 6),
+                "t_value": round(model_obj.tvalues[term], 4),
+                "p_value": round(model_obj.pvalues[term], 6),
+                "ci_lower": round(ci.loc[term, 0], 6),
+                "ci_upper": round(ci.loc[term, 1], 6),
+                "sign": "+" if model_obj.params[term] > 0 else "-",
+                "vif": vifs_dict.get(term, None),
+            })
+    coef_df = pd.DataFrame(coef_rows)
+    path = f"{OUTDIR}/a6_selected_coefficients.csv"
+    coef_df.to_csv(path, index=False)
+    print(f"Saved selected coefficients: {path}")
 
     # ── Notes ─────────────────────────────────────────────────────
     notes_lines.extend([
@@ -307,21 +340,31 @@ def main():
         "",
         "Verified results:",
         "  - All models use OLS with intercept, no transforms, n=50 states",
-        "  - VIF computed from statsmodels variance_inflation_factor",
+        "  - VIF computed from statsmodels variance_inflation_factor on IV matrix only",
+        "    (intercept excluded from VIF computation)",
         "  - Adjusted R² accounts for number of predictors",
+        "  - VIF threshold for model viability: max_VIF < 10 (standard threshold for",
+        "    'no extreme multicollinearity'; see Marquardt 1970, Hair et al. 2010)",
+        "  - Models with max_VIF >= 10 are excluded from selection unless all",
+        "    candidates exceed this threshold",
+        "  - Simplicity preference: if adj_R² improvement < 0.02, prefer fewer IVs",
         "",
         "Implementation assumptions:",
         "  - Candidate IVs were selected from A4/A5 screening (not exhaustive search)",
         "  - 5 candidate models per age group; more combinations are possible",
-        "  - Simplicity preference: if adj_R² improvement < 0.02, prefer fewer IVs",
+        "  - Sign plausibility was assessed but not used as a hard filter —",
+        "    all signs in selected models are noted in sign_check column",
         "",
         "Interpretation / opinion:",
-        "  - Weak overall fit (adj_R² < 0.15 for most age groups) is expected for a",
+        "  - Weak overall fit (adj_R² < 0.15 for some age groups) is expected for a",
         "    50-state cross-section with no transforms. State-level migration is",
-        "    influenced by many factors not captured in 22 IVs.",
+        "    influenced by many factors not captured by 22 aggregate IVs.",
         "  - Different age groups having different top predictors is consistent with",
         "    migration theory (amenity vs. employment vs. cost motives differ by age).",
         "  - These are associations, not causal estimates.",
+        "  - NRI_RISK_INDEX sign reversal across age groups (negative for 25-34,",
+        "    positive for 55-64) may reflect different migration motives by age.",
+        "    This requires careful interpretation in the final report.",
     ])
 
     path = f"{OUTDIR}/a6_notes.txt"
