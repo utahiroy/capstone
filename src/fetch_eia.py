@@ -1,5 +1,6 @@
 """Fetch EIA electricity price data."""
 
+import time
 import requests
 import pandas as pd
 
@@ -43,11 +44,25 @@ def fetch_electricity_price(api_key, year=2024):
         f"&end={year}"
         f"&length=100"
     )
-    resp = requests.get(url, timeout=60)
 
-    if resp.status_code != 200:
-        print(f"  EIA: HTTP {resp.status_code}, body: {resp.text[:300]}")
-        resp.raise_for_status()
+    max_retries = 3
+    resp = None
+    for attempt in range(max_retries):
+        try:
+            resp = requests.get(url, timeout=120)
+            if resp.status_code == 200:
+                break
+            print(f"  EIA: HTTP {resp.status_code} (attempt {attempt + 1}/{max_retries})")
+        except requests.exceptions.RequestException as e:
+            print(f"  EIA request error (attempt {attempt + 1}/{max_retries}): {e}")
+        if attempt < max_retries - 1:
+            wait = 2 ** (attempt + 1)
+            print(f"  Retrying in {wait}s...")
+            time.sleep(wait)
+
+    if resp is None or resp.status_code != 200:
+        msg = resp.text[:300] if resp else "No response"
+        raise RuntimeError(f"EIA API failed after {max_retries} attempts: {msg}")
 
     payload = resp.json()
 

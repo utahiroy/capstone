@@ -34,6 +34,10 @@ from src.fetch_bls import fetch_unemployment, fetch_qcew
 from src.fetch_eia import fetch_electricity_price
 from src.fetch_permits import fetch_permits
 from src.fetch_land_area import fetch_land_area
+from src.fetch_commute import fetch_commute_med
+from src.fetch_uninsured import fetch_uninsured
+from src.fetch_crime import fetch_crime_violent_rate, load_crime_from_csv
+from src.fetch_nri import fetch_nri_risk_index
 from src.build_variables import (
     build_migration_dvs,
     build_cost_burden,
@@ -342,6 +346,79 @@ def main():
         log("  SKIPPED: No EIA_API_KEY")
         failed_vars.append("ELEC_PRICE_TOT (no key)")
 
+    # ── 14a. COMMUTE_MED (ACS B08303 grouped median) ──────────────────
+    section("14a. Fetching commute time (ACS B08303 grouped median)")
+    df_commute = None
+    try:
+        df_commute = fetch_commute_med(census_key, ALL_STATES)
+        save_raw(df_commute, "acs_b08303_commute")
+        completed_vars.append("COMMUTE_MED")
+        log(f"  COMMUTE_MED: {len(df_commute)} states, "
+            f"median={df_commute['COMMUTE_MED'].median():.1f} min")
+    except Exception as e:
+        log(f"  ERROR: COMMUTE_MED failed: {e}")
+        traceback.print_exc()
+        failed_vars.append("COMMUTE_MED")
+
+    # ── 14b. UNINSURED (ACS S2701 / B27010 fallback) ────────────────
+    section("14b. Fetching uninsured rate (ACS S2701 / B27010)")
+    df_uninsured = None
+    try:
+        df_uninsured = fetch_uninsured(census_key, ALL_STATES)
+        save_raw(df_uninsured, "acs_uninsured")
+        completed_vars.append("UNINSURED")
+        log(f"  UNINSURED: {len(df_uninsured)} states, "
+            f"source={df_uninsured['UNINSURED_SOURCE'].iloc[0]}")
+    except Exception as e:
+        log(f"  ERROR: UNINSURED failed: {e}")
+        traceback.print_exc()
+        failed_vars.append("UNINSURED")
+
+    # ── 14c. CRIME_VIOLENT_RATE (FBI CDE API) ────────────────────────
+    section("14c. Fetching violent crime rate (FBI CDE API)")
+    df_crime = None
+    data_gov_key = keys.get("DATA_GOV_API_KEY", "")
+    if data_gov_key:
+        try:
+            df_crime = fetch_crime_violent_rate(data_gov_key)
+            save_raw(df_crime, "fbi_crime_violent")
+            completed_vars.append("CRIME_VIOLENT_RATE")
+            log(f"  CRIME_VIOLENT_RATE: {len(df_crime)} states")
+        except Exception as e:
+            log(f"  ERROR: CRIME_VIOLENT_RATE API failed: {e}")
+            traceback.print_exc()
+            # Try CSV fallback
+            try:
+                import os
+                csv_path = "data_raw/fbi_crime_state_2024.csv"
+                if os.path.exists(csv_path):
+                    log(f"  Trying CSV fallback: {csv_path}")
+                    df_crime = load_crime_from_csv(csv_path)
+                    completed_vars.append("CRIME_VIOLENT_RATE")
+                    log(f"  CRIME_VIOLENT_RATE (CSV): {len(df_crime)} states")
+                else:
+                    failed_vars.append("CRIME_VIOLENT_RATE")
+            except Exception as e2:
+                log(f"  ERROR: CRIME_VIOLENT_RATE CSV fallback also failed: {e2}")
+                failed_vars.append("CRIME_VIOLENT_RATE")
+    else:
+        log("  SKIPPED: No DATA_GOV_API_KEY")
+        failed_vars.append("CRIME_VIOLENT_RATE (no key)")
+
+    # ── 14d. NRI_RISK_INDEX (FEMA NRI county aggregation) ────────────
+    section("14d. Fetching NRI Risk Index (FEMA county-to-state aggregation)")
+    df_nri = None
+    try:
+        df_nri = fetch_nri_risk_index()
+        save_raw(df_nri, "fema_nri_state")
+        completed_vars.append("NRI_RISK_INDEX (provisional)")
+        log(f"  NRI_RISK_INDEX: {len(df_nri)} states, "
+            f"median={df_nri['NRI_RISK_INDEX'].median():.1f}")
+    except Exception as e:
+        log(f"  ERROR: NRI_RISK_INDEX failed: {e}")
+        traceback.print_exc()
+        failed_vars.append("NRI_RISK_INDEX")
+
     # ── 15. Join all IVs ──────────────────────────────────────────────
     section("15. Joining all IVs into master table")
 
@@ -403,6 +480,34 @@ def main():
         df_ivs = safe_merge(df_ivs, df_elec[["state", "ELEC_PRICE_TOT"]], "ELEC_PRICE_TOT")
         log("  Joined: ELEC_PRICE_TOT")
 
+    # Add COMMUTE_MED
+    if df_commute is not None:
+        df_commute = normalize_state_col(df_commute)
+        df_ivs = safe_merge(df_ivs, df_commute[["state", "COMMUTE_MED"]], "COMMUTE_MED")
+        log("  Joined: COMMUTE_MED")
+
+    # Add UNINSURED
+    if df_uninsured is not None:
+        df_uninsured = normalize_state_col(df_uninsured)
+        df_ivs = safe_merge(df_ivs, df_uninsured[["state", "UNINSURED"]], "UNINSURED")
+        log("  Joined: UNINSURED")
+
+    # Add CRIME_VIOLENT_RATE
+    if df_crime is not None:
+        df_crime = normalize_state_col(df_crime)
+        df_ivs = safe_merge(
+            df_ivs,
+            df_crime[["state", "CRIME_VIOLENT_RATE"]],
+            "CRIME_VIOLENT_RATE",
+        )
+        log("  Joined: CRIME_VIOLENT_RATE")
+
+    # Add NRI_RISK_INDEX
+    if df_nri is not None:
+        df_nri = normalize_state_col(df_nri)
+        df_ivs = safe_merge(df_ivs, df_nri[["state", "NRI_RISK_INDEX"]], "NRI_RISK_INDEX")
+        log("  Joined: NRI_RISK_INDEX")
+
     # Add state name
     df_ivs.insert(1, "state_name", df_ivs["state"].map(STATE_FIPS))
 
@@ -450,6 +555,7 @@ def main():
         "GDP", "RPP", "REAL_PCPI", "UNEMP",
         "PRIV_EMP", "PRIV_ESTAB", "PRIV_AVG_PAY",
         "PERMITS", "ELEC_PRICE_TOT",
+        "COMMUTE_MED", "UNINSURED", "CRIME_VIOLENT_RATE", "NRI_RISK_INDEX",
     ]
     all_null_vars = []
     for col in iv_cols_expected:
