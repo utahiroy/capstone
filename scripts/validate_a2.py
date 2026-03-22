@@ -19,12 +19,14 @@ EXPECTED_DV_COLS = ["state"] + [
     f"{prefix}{ag}" for ag in AGE_GROUPS for prefix in DV_PREFIXES
 ]
 
-# Expected IV columns (18 core)
+# Expected IV columns (22 total: 18 core + 4 newly added)
 EXPECTED_IV_COLS = [
     "POP", "LAND_AREA", "POP_DENS", "GDP", "RPP", "REAL_PCPI",
     "UNEMP", "PRIV_EMP", "PRIV_ESTAB", "PRIV_AVG_PAY", "PERMITS",
     "MED_RENT", "MED_HOMEVAL", "COST_BURDEN_ALL", "VACANCY_RATE",
-    "TRANSIT_SHARE", "BA_PLUS", "ELEC_PRICE_TOT",
+    "COMMUTE_MED", "TRANSIT_SHARE", "BA_PLUS",
+    "UNINSURED", "ELEC_PRICE_TOT",
+    "CRIME_VIOLENT_RATE", "NRI_RISK_INDEX",
 ]
 
 EXCLUDED_FIPS = {"11", "72"}  # DC, PR
@@ -162,6 +164,34 @@ def main():
         print(f"  GDP min: {min_gdp:,.0f}")
         if min_gdp <= 0:
             print("  WARNING: non-positive GDP value")
+
+    # COMMUTE_MED should be 5-60 minutes
+    if "COMMUTE_MED" in actual_cols:
+        vmin, vmax = df["COMMUTE_MED"].min(), df["COMMUTE_MED"].max()
+        print(f"  COMMUTE_MED range: {vmin:.1f} – {vmax:.1f} min")
+        if vmin < 5 or vmax > 60:
+            print("  WARNING: COMMUTE_MED out of expected 5–60 min range")
+
+    # UNINSURED should be 2-25%
+    if "UNINSURED" in actual_cols:
+        vmin, vmax = df["UNINSURED"].min(), df["UNINSURED"].max()
+        print(f"  UNINSURED range: {vmin:.1f} – {vmax:.1f}%")
+        if vmin < 1 or vmax > 30:
+            print("  WARNING: UNINSURED out of expected 1–30% range")
+
+    # CRIME_VIOLENT_RATE should be 50-800 per 100k
+    if "CRIME_VIOLENT_RATE" in actual_cols:
+        vmin, vmax = df["CRIME_VIOLENT_RATE"].min(), df["CRIME_VIOLENT_RATE"].max()
+        print(f"  CRIME_VIOLENT_RATE range: {vmin:.1f} – {vmax:.1f} per 100k")
+        if vmin < 30 or vmax > 1000:
+            print("  WARNING: CRIME_VIOLENT_RATE out of expected 30–1000 range")
+
+    # NRI_RISK_INDEX should be 0-100
+    if "NRI_RISK_INDEX" in actual_cols:
+        vmin, vmax = df["NRI_RISK_INDEX"].min(), df["NRI_RISK_INDEX"].max()
+        print(f"  NRI_RISK_INDEX range: {vmin:.1f} – {vmax:.1f}")
+        if vmin < 0 or vmax > 100:
+            print("  WARNING: NRI_RISK_INDEX out of expected 0–100 range")
 
     # ── 8. List output files ──────────────────────────────────────
     section("8. Output files")
