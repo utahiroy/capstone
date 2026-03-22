@@ -155,4 +155,96 @@ pipeline is robust to such renumbering.
 
 ---
 
-*Last updated: Phase A3 (REAL_PCPI runtime discovery fix).*
+## 6. COMMUTE_MED — Grouped Median from ACS B08303
+
+**Source:** ACS 2024 1-year, detail table B08303 (Travel Time to Work)
+**Variables:** B08303_001E (total workers), B08303_002E–B08303_013E (12 time bins)
+
+**Why not S0801_C01_046E:**
+The subject table variable S0801_C01_046E was validated and confirmed to
+provide **mean** travel time to work, not **median**.  The research design
+specifies median.  Using mean would silently change the variable definition.
+
+**Method:**
+Grouped-median interpolation from 12 Census-defined time bins.  Standard
+formula: `L + [(N/2 - F) / f] * C`.  Upper bound of the final bin
+(90+ minutes) assumed to be 120 minutes.
+
+**Sanity check:** Median of state medians must be 5–60 minutes.
+
+---
+
+## 7. UNINSURED — ACS Subject Table S2701 with B27010 Fallback
+
+**Primary source:** ACS 2024 1-year subject table S2701
+**Variable:** S2701_C05_001E (percent uninsured, total population)
+**API endpoint:** `/data/2024/acs/acs1/subject` (different from detail table base)
+
+**Cross-check logic:**
+When S2701 succeeds, the direct percentage is cross-checked against a
+recomputed value (S2701_C04_001E / S2701_C01_001E * 100).  If the max
+discrepancy exceeds 1.0 percentage point, a warning is logged.
+
+**Fallback:** Detail table B27010 (Types of Health Insurance by Age).
+All B27010 uninsured codes (017, 033, 050, 066) verified against Census
+Reporter ACS 2024 1-year metadata.
+
+---
+
+## 8. CRIME_VIOLENT_RATE — FBI CDE API (Provisional)
+
+**Source:** FBI Crime Data Explorer, UCR estimated state-level data
+**API:** `https://api.usa.gov/crime/fbi/sapi/api/estimates/states/{abbr}/{year}/{year}`
+**Key:** DATA_GOV_API_KEY (free from https://api.data.gov/signup/)
+
+**Extraction:**
+The API is called once per state (50 calls).  Each call returns a JSON
+object with `results` containing records keyed by year.  Fields used:
+`violent_crime` (count), `population`.
+
+**Rate formula:** `CRIME_VIOLENT_RATE = 100000 * violent_crime / population`
+
+**Retry logic:** Up to 3 attempts per state with exponential backoff on
+rate limits (HTTP 429).
+
+**Manual CSV fallback:**
+If the API is down, place a CSV at `data_raw/fbi_crime_state_2024.csv`
+with columns `state_abbr, violent_crime, population` (or pre-computed
+`state, CRIME_VIOLENT_RATE`).
+
+**Why provisional:** The FBI CDE API has documented reliability issues.
+The data is the standard source (95.6% population coverage in 2024),
+but extraction depends on API availability.
+
+---
+
+## 9. NRI_RISK_INDEX — FEMA County-to-State Aggregation (Provisional)
+
+**Source:** FEMA National Risk Index v1.20 (December 2025), county-level CSV
+**Download:** https://hazards.fema.gov/nri/data-resources
+
+**Key columns used:**
+- `STATEFIPS` — 2-digit state FIPS
+- `POPULATION` — county population from Hazus 6.1
+- `RISK_SCORE` — composite overall risk score (0–100 percentile among counties)
+
+**Aggregation method:**
+Population-weighted mean:
+`NRI_RISK_INDEX = sum(county_pop * county_RISK_SCORE) / sum(county_pop)`
+
+Counties with missing RISK_SCORE or zero population are excluded.
+
+**Why provisional:**
+1. FEMA does not provide a direct state-level composite Risk Index.
+2. The population-weighted mean is a project decision.
+3. Averaging county percentile ranks produces a meaningful measure of
+   "average risk exposure" but is not a true state-level percentile.
+4. Alternative aggregation methods (unweighted mean, EAL-based) could
+   produce different rankings.
+
+**Caching:** Downloaded county CSV is saved to `data_raw/nri_counties_raw.csv`
+and reused on subsequent runs.  Delete the cached file to force re-download.
+
+---
+
+*Last updated: Phase A2 deferred-IV implementation (COMMUTE_MED, UNINSURED, CRIME_VIOLENT_RATE, NRI_RISK_INDEX).*

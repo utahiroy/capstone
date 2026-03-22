@@ -395,14 +395,16 @@ VACANCY_RATE = 100 * B25004_002E / (B25004_002E + B25004_003E + B25003_003E)
 | Field | Value |
 |---|---|
 | ID | COMMUTE_MED |
-| Description | Median travel time to work (minutes) |
+| Description | Approximate grouped median travel time to work (minutes) |
 | Source | ACS 2024 1-year |
-| Table | Subject table S0801 |
-| Variable | S0801_C01_046E (Total — Median travel time to work, minutes) |
-| API | `https://api.census.gov/data/2024/acs/acs1/subject?get=S0801_C01_046E&for=state:*` |
+| Table | B08303 (Travel Time to Work) |
+| Variables | B08303_001E (total), B08303_002E–B08303_013E (12 time bins) |
+| API | `https://api.census.gov/data/2024/acs/acs1?get=B08303_001E,...,B08303_013E&for=state:*` |
 | Unit | minutes |
-| Formula | direct read |
-| Status | **needs review** — subject table variable codes can shift between ACS vintages. The code S0801_C01_046E is based on recent vintages and must be verified against `https://api.census.gov/data/2024/acs/acs1/subject/groups/S0801.json`. If unavailable, a **mean** can be computed from B08013_001E / B08301_001E (aggregate travel time / total workers), but this changes the variable definition and would require approval. |
+| Formula | Grouped-median interpolation: `L + [(N/2 - F) / f] * C` |
+| Status | **verified** — S0801_C01_046E was confirmed as MEAN travel time (not median). Grouped median from B08303 bins is the correct implementation for COMMUTE_MED. |
+
+**Note on S0801_C01_046E**: This subject table variable provides **mean** travel time to work, not median. Using it would change the variable definition from the research design. The B08303 grouped-median approach preserves the intended definition.
 
 ---
 
@@ -459,6 +461,8 @@ BA_PLUS = 100 * (B15003_022E + B15003_023E + B15003_024E + B15003_025E) / B15003
 | Primary variable | S2701_C05_001E (uninsured percentage, total) |
 | API | `https://api.census.gov/data/2024/acs/acs1/subject?get=S2701_C05_001E&for=state:*` |
 
+**Cross-check**: Recomputed from S2701_C04_001E (count) / S2701_C01_001E (total). Max allowed difference: 1.0 pp.
+
 **Fallback** (if subject table unavailable):
 - Table B27010 (Types of Health Insurance Coverage by Age)
 - Uninsured = B27010_017E + B27010_033E + B27010_050E + B27010_066E
@@ -467,7 +471,7 @@ BA_PLUS = 100 * (B15003_022E + B15003_023E + B15003_024E + B15003_025E) / B15003
 
 **Unit**: percent
 
-**Status**: **needs review** — S2701 subject table variable code must be verified for 2024 vintage (subject table codes are less stable across vintages). **Fallback B27010 codes now confirmed**: B27010_017E (under 19, no insurance), B27010_033E (19-34), B27010_050E (35-64), B27010_066E (65+) verified against Census Reporter ACS 2024 1-year metadata.
+**Status**: **verified** — S2701_C05_001E confirmed as percent uninsured for ACS 2024 1-year. C05 = Percent Uninsured column, 001 = total population row. Subject table API endpoint: `/data/2024/acs/acs1/subject`. Fallback B27010 codes also confirmed.
 
 ---
 
@@ -499,7 +503,7 @@ BA_PLUS = 100 * (B15003_022E + B15003_023E + B15003_024E + B15003_025E) / B15003
 | Fallback | Bulk CSV/Excel download from https://cde.ucr.cjis.gov/LATEST/webapp/#/pages/downloads |
 | Unit | per 100,000 |
 | Formula | direct read (pre-computed rate) or compute from counts + population |
-| Status | **needs review (extraction method only)** — 2024 data confirmed released (95.6% population coverage). Data exists. Exact extraction method still needs review: CDE API is unreliable; bulk CSV download is the likely path. State-level rates may need to be computed from count data. |
+| Status | **provisional** — 2024 data confirmed released (95.6% population coverage). Implementation uses FBI CDE API estimates endpoint: `api/estimates/states/{abbr}/{year}/{year}`. API returns violent_crime count and population; rate computed as `100000 * count / pop`. CSV manual fallback at `data_raw/fbi_crime_state_2024.csv`. Provisional because API reliability is uncertain. |
 
 ---
 
@@ -517,8 +521,8 @@ BA_PLUS = 100 * (B15003_022E + B15003_023E + B15003_024E + B15003_025E) / B15003
 | Unit | index score |
 | Geographic level | **County and tract only** — state-level composite Risk Index is NOT directly provided |
 | State alternative | State-level Expected Annual Loss (EAL) IS provided directly |
-| Formula | Option A: aggregate county RISK_SCORE to state (population-weighted average) — requires methodological decision. Option B: use state-level EAL as proxy — simpler but different construct. |
-| Status | **needs review — METHODOLOGICAL DECISION REQUIRED** — (1) Use county-to-state aggregation of RISK_SCORE (what aggregation method?), or (2) substitute state-level EAL as the variable. This changes the variable definition and requires explicit approval. |
+| Formula | Population-weighted mean of county RISK_SCORE: `sum(county_pop * county_RISK_SCORE) / sum(county_pop)` |
+| Status | **provisional** — Implemented as population-weighted mean of county-level composite RISK_SCORE from NRI v1.20 (December 2025). This is a project-defined aggregation, not an official FEMA state-level metric. RISK_SCORE is a 0–100 percentile ranking among all U.S. counties. The weighted average approximates "mean natural hazard risk exposure of the state's population." Alternative: state-level EAL (different construct, not used). |
 
 ---
 
@@ -552,21 +556,16 @@ BA_PLUS = 100 * (B15003_022E + B15003_023E + B15003_024E + B15003_025E) / B15003
 | 18 | BA_PLUS | ACS B15003 | codes verified, ACS 2024 1-yr |
 | 20 | ELEC_PRICE_TOT | EIA API v2 — 2024 data available | unchanged |
 
-### Needs review (minor — verify at implementation)
+### Verified (newly implemented)
 
-| # | Variable | Issue |
+| # | Variable | Resolution |
 |---|---|---|
-| 16 | COMMUTE_MED | Subject table S0801 variable code needs verification (not in detail-table metadata) |
-| 19 | UNINSURED | S2701 subject table code needs verification. **Fallback B27010 codes now confirmed** (017, 033, 050, 066). |
+| 16 | COMMUTE_MED | Grouped median from ACS B08303 bins. S0801_C01_046E confirmed as mean (not median). |
+| 19 | UNINSURED | S2701_C05_001E confirmed as percent uninsured. B27010 fallback also confirmed. |
 
-### Needs review (extraction method only — data exists)
+### Provisional (implemented with caveats)
 
-| # | Variable | Issue |
+| # | Variable | Caveat |
 |---|---|---|
-| 21 | CRIME_VIOLENT_RATE | 2024 data confirmed released. CDE API unreliable; bulk CSV download likely needed. |
-
-### Needs review (methodological decision required)
-
-| # | Variable | Issue |
-|---|---|---|
-| 22 | NRI_RISK_INDEX | **State-level composite not directly available.** Must either (a) aggregate county-level RISK_SCORE (requires choosing aggregation method) or (b) substitute state-level Expected Annual Loss (EAL). Requires approval. |
+| 21 | CRIME_VIOLENT_RATE | FBI CDE API estimates endpoint implemented. API reliability uncertain; manual CSV fallback available. |
+| 22 | NRI_RISK_INDEX | Population-weighted mean of county RISK_SCORE. Project-defined aggregation, not official FEMA metric. |
