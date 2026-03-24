@@ -1,7 +1,7 @@
 # A8 Reactive Visualization — Design Memo
 
-**Phase**: A8-1 (scaffold + design)
-**Status**: Draft
+**Phase**: A8-2 (MVP implementation complete)
+**Status**: Working MVP
 **Date**: 2026-03-24
 
 ---
@@ -176,3 +176,46 @@ Estimated touch points: 1 new file (`a8_dashboard.py`), 1 edit (`requirements.tx
 | Synthetic data may look odd in coordinated view | Note in UI footer; same caveat as A7 |
 | 35–54 model is weak (adj R² = 0.08) | Display R² on scatter; do not hide weak fits |
 | Callback complexity grows with panels | Keep callback graph flat (no chained callbacks in MVP) |
+
+---
+
+## 10. Run instructions
+
+```bash
+# Install dependencies (one-time)
+pip install -r requirements.txt
+
+# Launch the dashboard
+python scripts/a8_dashboard.py
+
+# Open in browser
+# http://127.0.0.1:8050
+```
+
+---
+
+## 11. A8-2 implementation notes
+
+**Completed** (2026-03-24):
+
+All four MVP panels are fully implemented with cross-panel coordination:
+
+| Panel | Implementation | Interactions |
+|-------|---------------|--------------|
+| Choropleth map | Diverging red-white-blue scale, auto-scaled per age group; star marker on selected state | Click → sets selected_state |
+| IV vs NET_RATE scatter | Points labeled by abbreviation; OLS trendline; adj R² in title | Click → sets selected_state; IV dropdown filters to A6 model IVs |
+| State profile | Horizontal bars for all 5 age groups; active age group highlighted in dark; placeholder when no state selected | Reacts to selected_state and age_group |
+| Top/bottom ranking | Top 10 + bottom 10 table; color-coded positive/negative; selected state row highlighted yellow | Click → sets selected_state |
+
+**Shared state wiring**: single `dcc.Store("selected-state")` updated by map click, scatter click, or ranking row click via `dash.ctx.triggered_id`. All four panels consume it.
+
+**Files modified**:
+- `scripts/a8_dashboard.py` — full MVP (~420 lines)
+- `requirements.txt` — added `dash>=2.14`
+
+**Deferred to future phases**:
+- Robustness selector (WLS / smallest-state exclusion toggle)
+- Residual map panel
+- Method / data-provenance drawer
+- Advanced styling and responsive layout polish
+- Scatter click → highlight on map (reverse direction from current map→scatter flow) — works via shared state but geographic highlight is star-only
