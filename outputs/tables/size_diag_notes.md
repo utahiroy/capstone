@@ -6,117 +6,117 @@
 
 ## Age group: 18–24
 
-**POP_AGE vs NET_RATE**: Spearman rho = 0.289 (p = 0.0418, significant)
-  → larger states tend to have higher net rates
+**POP_AGE vs NET_RATE**: Spearman rho = -0.308 (p = 0.0293, significant)
+  → smaller states tend to have higher net rates
 
-**POP_AGE vs |NET_RATE|**: Spearman rho = -0.432 (p = 0.0017, significant)
+**POP_AGE vs |NET_RATE|**: Spearman rho = -0.418 (p = 0.0025, significant)
   → Small states show systematically more extreme rates (denominator effect detected).
 
-**Top-10 overlap (rate vs count)**: 10/10 gaining, 6/10 losing
-  → Moderate-to-high overlap in gainers.
+**Top-10 overlap (rate vs count)**: 2/10 gaining, 7/10 losing
+  → Low overlap in gainers: rate rankings emphasize different states than count rankings.
 
 **Small-state presence in rate extremes** (10 small states, expected ~2/10):
-  - In top-10 NET_RATE: 1
-  - In bottom-10 NET_RATE: 7
-  - In top-10 |NET_RATE|: 7
-  → Small states are **over-represented** in extreme rate rankings (expected ~2, got 7).
+  - In top-10 NET_RATE: 6
+  - In bottom-10 NET_RATE: 2
+  - In top-10 |NET_RATE|: 6
+  → Small states are **over-represented** in extreme rate rankings (expected ~2, got 6).
 
-**Top 10 by NET_RATE**: Louisiana, Colorado, Vermont, Illinois, New Mexico, Kentucky, Kansas, Ohio, Virginia, Alabama
-**Top 10 by NET_COUNT**: Louisiana, Colorado, New Mexico, Vermont, Illinois, Ohio, Kentucky, Virginia, Kansas, Alabama
+**Top 10 by NET_RATE**: Vermont, Wyoming, North Dakota, Hawaii, Rhode Island, South Carolina, Montana, West Virginia, Arkansas, Kentucky
+**Top 10 by NET_COUNT**: South Carolina, North Carolina, Tennessee, Missouri, Arizona, Virginia, Kentucky, Oklahoma, Utah, Alabama
 
 ---
 
 ## Age group: 25–34
 
-**POP_AGE vs NET_RATE**: Spearman rho = -0.084 (p = 0.5642, not significant)
+**POP_AGE vs NET_RATE**: Spearman rho = 0.062 (p = 0.6674, not significant)
   → weak or negligible association
 
-**POP_AGE vs |NET_RATE|**: Spearman rho = -0.205 (p = 0.1537, not significant)
-  → Tendency for small states to have more extreme rates, but not statistically significant.
+**POP_AGE vs |NET_RATE|**: Spearman rho = -0.435 (p = 0.0016, significant)
+  → Small states show systematically more extreme rates (denominator effect detected).
 
-**Top-10 overlap (rate vs count)**: 9/10 gaining, 9/10 losing
+**Top-10 overlap (rate vs count)**: 5/10 gaining, 5/10 losing
   → Moderate-to-high overlap in gainers.
 
 **Small-state presence in rate extremes** (10 small states, expected ~2/10):
-  - In top-10 NET_RATE: 2
-  - In bottom-10 NET_RATE: 3
-  - In top-10 |NET_RATE|: 4
-  → Small states are **moderately over-represented** in extreme rate rankings.
+  - In top-10 NET_RATE: 4
+  - In bottom-10 NET_RATE: 4
+  - In top-10 |NET_RATE|: 5
+  → Small states are **over-represented** in extreme rate rankings (expected ~2, got 5).
 
-**Top 10 by NET_RATE**: Arkansas, Kansas, Wisconsin, New Jersey, Montana, Georgia, New Hampshire, Delaware, Washington, Alaska
-**Top 10 by NET_COUNT**: New Hampshire, New Jersey, Montana, Arkansas, Georgia, Delaware, Washington, Wisconsin, Alaska, Wyoming
+**Top 10 by NET_RATE**: Maine, Nevada, Rhode Island, Maryland, New Mexico, Tennessee, Washington, Wyoming, New Hampshire, South Carolina
+**Top 10 by NET_COUNT**: Texas, Washington, Tennessee, Maryland, Arizona, Nevada, South Carolina, Ohio, Wisconsin, Missouri
 
 ---
 
 ## Age group: 35–54
 
-**POP_AGE vs NET_RATE**: Spearman rho = 0.191 (p = 0.1838, not significant)
-  → weak or negligible association
+**POP_AGE vs NET_RATE**: Spearman rho = -0.284 (p = 0.0455, significant)
+  → smaller states tend to have higher net rates
 
-**POP_AGE vs |NET_RATE|**: Spearman rho = -0.344 (p = 0.0144, significant)
-  → Small states show systematically more extreme rates (denominator effect detected).
+**POP_AGE vs |NET_RATE|**: Spearman rho = -0.208 (p = 0.1478, not significant)
+  → Tendency for small states to have more extreme rates, but not statistically significant.
 
-**Top-10 overlap (rate vs count)**: 9/10 gaining, 10/10 losing
-  → Moderate-to-high overlap in gainers.
+**Top-10 overlap (rate vs count)**: 4/10 gaining, 8/10 losing
+  → Low overlap in gainers: rate rankings emphasize different states than count rankings.
 
 **Small-state presence in rate extremes** (10 small states, expected ~2/10):
-  - In top-10 NET_RATE: 2
-  - In bottom-10 NET_RATE: 4
-  - In top-10 |NET_RATE|: 4
-  → Small states are **moderately over-represented** in extreme rate rankings.
+  - In top-10 NET_RATE: 6
+  - In bottom-10 NET_RATE: 2
+  - In top-10 |NET_RATE|: 6
+  → Small states are **over-represented** in extreme rate rankings (expected ~2, got 6).
 
-**Top 10 by NET_RATE**: California, Arizona, Florida, Montana, Louisiana, Utah, Mississippi, Wyoming, Kentucky, Kansas
-**Top 10 by NET_COUNT**: California, Montana, Arizona, Utah, Louisiana, Florida, Mississippi, Kansas, Rhode Island, Wyoming
+**Top 10 by NET_RATE**: Nevada, Delaware, Vermont, North Dakota, New Hampshire, Maine, South Carolina, Oklahoma, Georgia, Wyoming
+**Top 10 by NET_COUNT**: Texas, Georgia, Nevada, North Carolina, South Carolina, Ohio, Arizona, Oklahoma, Maryland, Alabama
 
 ---
 
 ## Age group: 55–64
 
-**POP_AGE vs NET_RATE**: Spearman rho = -0.022 (p = 0.8803, not significant)
-  → weak or negligible association
+**POP_AGE vs NET_RATE**: Spearman rho = -0.212 (p = 0.1396, not significant)
+  → smaller states tend to have higher net rates
 
-**POP_AGE vs |NET_RATE|**: Spearman rho = -0.255 (p = 0.0743, not significant)
-  → Tendency for small states to have more extreme rates, but not statistically significant.
+**POP_AGE vs |NET_RATE|**: Spearman rho = -0.089 (p = 0.5393, not significant)
+  → No strong evidence that small states have systematically more extreme rates.
 
-**Top-10 overlap (rate vs count)**: 8/10 gaining, 9/10 losing
+**Top-10 overlap (rate vs count)**: 6/10 gaining, 7/10 losing
   → Moderate-to-high overlap in gainers.
 
 **Small-state presence in rate extremes** (10 small states, expected ~2/10):
-  - In top-10 NET_RATE: 4
-  - In bottom-10 NET_RATE: 3
+  - In top-10 NET_RATE: 3
+  - In bottom-10 NET_RATE: 2
   - In top-10 |NET_RATE|: 4
   → Small states are **moderately over-represented** in extreme rate rankings.
 
-**Top 10 by NET_RATE**: Idaho, Louisiana, South Carolina, Kentucky, California, New Jersey, Kansas, Oregon, Montana, Indiana
-**Top 10 by NET_COUNT**: Idaho, Kentucky, Kansas, New Jersey, South Carolina, California, Montana, Louisiana, Michigan, Alabama
+**Top 10 by NET_RATE**: Vermont, South Carolina, Nevada, Delaware, Florida, Arizona, Idaho, Oklahoma, Maine, North Carolina
+**Top 10 by NET_COUNT**: Florida, North Carolina, South Carolina, Arizona, Tennessee, Nevada, Alabama, Oklahoma, Texas, Georgia
 
 ---
 
 ## Age group: 65+
 
-**POP_AGE vs NET_RATE**: Spearman rho = 0.042 (p = 0.7715, not significant)
+**POP_AGE vs NET_RATE**: Spearman rho = -0.072 (p = 0.6175, not significant)
   → weak or negligible association
 
-**POP_AGE vs |NET_RATE|**: Spearman rho = -0.061 (p = 0.6728, not significant)
+**POP_AGE vs |NET_RATE|**: Spearman rho = -0.079 (p = 0.5833, not significant)
   → No strong evidence that small states have systematically more extreme rates.
 
-**Top-10 overlap (rate vs count)**: 9/10 gaining, 8/10 losing
+**Top-10 overlap (rate vs count)**: 7/10 gaining, 7/10 losing
   → Moderate-to-high overlap in gainers.
 
 **Small-state presence in rate extremes** (10 small states, expected ~2/10):
-  - In top-10 NET_RATE: 0
-  - In bottom-10 NET_RATE: 2
-  - In top-10 |NET_RATE|: 1
+  - In top-10 NET_RATE: 2
+  - In bottom-10 NET_RATE: 3
+  - In top-10 |NET_RATE|: 2
   → Small-state representation in extremes is roughly proportional.
 
-**Top 10 by NET_RATE**: West Virginia, Pennsylvania, Illinois, Michigan, Oklahoma, North Dakota, Alaska, Ohio, New York, Delaware
-**Top 10 by NET_COUNT**: West Virginia, Illinois, Pennsylvania, Michigan, Oklahoma, Alaska, Arkansas, North Dakota, Ohio, New York
+**Top 10 by NET_RATE**: Idaho, Nevada, Arizona, South Carolina, Florida, Mississippi, Oklahoma, Delaware, New Hampshire, Virginia
+**Top 10 by NET_COUNT**: Florida, Arizona, South Carolina, Texas, Virginia, North Carolina, Nevada, Idaho, Oklahoma, Ohio
 
 ---
 
 ## Overall Assessment
 
-Denominator-effect signal detected in: 18–24, 35–54.
+Denominator-effect signal detected in: 18–24, 25–34.
 In these age groups, small-population states tend to appear at the extremes of NET_RATE rankings, which may inflate their apparent importance in OLS models that weight all states equally.
 
 **Implication**: Consider reporting both rate and count rankings side by side. For robustness, a sensitivity check using population-weighted regression or excluding the smallest states could be informative, but is not required to change the main specification.

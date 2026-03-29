@@ -17,27 +17,26 @@
 
 | Specification | n | Adj R² | AIC | RMSE | F-stat (p) |
 |---|---|---|---|---|---|
-| baseline_ols | 50 | 0.3121 | 162.5 | 1.1826 | 8.41 (0.0001) |
-| weighted_wls | 50 | 0.2869 | 157.0 | 1550.9543 | 7.57 (0.0003) |
-| exclude_smallest_ols | 40 | 0.2549 | 109.1 | 0.9025 | 5.45 (0.0034) |
+| baseline_ols | 50 | 0.1713 | 437.8 | 18.7317 | 6.07 (0.0045) |
+| weighted_wls | 50 | 0.1694 | 426.4 | 10359.5989 | 6.00 (0.0048) |
+| exclude_smallest_ols | 40 | 0.1804 | 324.2 | 13.4310 | 5.29 (0.0095) |
 
 ### Coefficient comparison
 
 | Term | Spec | Coef | Sign | Sign match | Rank | p-value |
 |---|---|---|---|---|---|---|
-| COMMUTE_MED | baseline_ols | -0.127223 | - | ✓ | 1 | 0.0007 |
-| COMMUTE_MED | weighted_wls | -0.111168 | - | ✓ | 1 | 0.0014 |
-| COMMUTE_MED | exclude_smallest_ols | -0.083791 | - | ✓ | 1 | 0.0090 |
-| MED_HOMEVAL | baseline_ols | -0.000002 | - | ✓ | 3 | 0.0053 |
-| MED_HOMEVAL | weighted_wls | -0.000002 | - | ✓ | 3 | 0.0044 |
-| MED_HOMEVAL | exclude_smallest_ols | -0.000002 | - | ✓ | 3 | 0.0087 |
-| UNINSURED | baseline_ols | -0.088754 | - | ✓ | 2 | 0.0304 |
-| UNINSURED | weighted_wls | -0.069935 | - | ✓ | 2 | 0.0606 |
-| UNINSURED | exclude_smallest_ols | -0.053215 | - | ✓ | 2 | 0.1065 |
+| COMMUTE_MED | baseline_ols | -2.786161 | - | ✓ | 1 | 0.0015 |
+| COMMUTE_MED | weighted_wls | -1.694896 | - | ✓ | 1 | 0.0189 |
+| COMMUTE_MED | exclude_smallest_ols | -1.611794 | - | ✓ | 1 | 0.0562 |
+| MED_HOMEVAL | baseline_ols | 0.000009 | + | ✓ | 2 | 0.6607 |
+| MED_HOMEVAL | weighted_wls | -0.000016 | - | ✗ FLIP | 2 | 0.1915 |
+| MED_HOMEVAL | exclude_smallest_ols | -0.000025 | - | ✗ FLIP | 2 | 0.1638 |
 
 ### Interpretation
 
-**Assessment**: **Stable**. Signs, rank ordering, and fit are broadly consistent across specifications.
+- Sign flip(s): MED_HOMEVAL (weighted_wls), MED_HOMEVAL (exclude_smallest_ols)
+
+**Assessment**: **Sensitive**. Coefficient sign(s) reverse under alternative specification(s). The main story for 18–24 should be interpreted with caution.
 
 ---
 
@@ -47,24 +46,28 @@
 
 | Specification | n | Adj R² | AIC | RMSE | F-stat (p) |
 |---|---|---|---|---|---|
-| baseline_ols | 50 | 0.0804 | 220.2 | 2.1261 | 3.14 (0.0524) |
-| weighted_wls | 50 | 0.0742 | 214.0 | 2800.8705 | 2.96 (0.0613) |
-| exclude_smallest_ols | 40 | 0.1015 | 160.2 | 1.7294 | 3.20 (0.0521) |
+| baseline_ols | 50 | -0.0036 | 323.9 | 5.9973 | 0.91 (0.4086) |
+| weighted_wls | 50 | 0.2447 | 322.3 | 6032.4620 | 8.94 (0.0005) |
+| exclude_smallest_ols | 40 | 0.1154 | 242.5 | 4.8353 | 3.54 (0.0390) |
 
 ### Coefficient comparison
 
 | Term | Spec | Coef | Sign | Sign match | Rank | p-value |
 |---|---|---|---|---|---|---|
-| REAL_PCPI | baseline_ols | 0.000053 | + | ✓ | 1 | 0.0428 |
-| REAL_PCPI | weighted_wls | 0.000047 | + | ✓ | 1 | 0.0513 |
-| REAL_PCPI | exclude_smallest_ols | 0.000047 | + | ✓ | 1 | 0.0491 |
-| PERMITS | baseline_ols | -0.000007 | - | ✓ | 2 | 0.2431 |
-| PERMITS | weighted_wls | -0.000006 | - | ✓ | 2 | 0.2463 |
-| PERMITS | exclude_smallest_ols | -0.000006 | - | ✓ | 2 | 0.2796 |
+| REAL_PCPI | baseline_ols | -0.000187 | - | ✓ | 1 | 0.2046 |
+| REAL_PCPI | weighted_wls | -0.000589 | - | ✓ | 1 | 0.0001 |
+| REAL_PCPI | exclude_smallest_ols | -0.000369 | - | ✓ | 1 | 0.0116 |
+| PERMITS | baseline_ols | -0.000011 | - | ✓ | 2 | 0.6095 |
+| PERMITS | weighted_wls | 0.000001 | + | ✗ FLIP | 2 | 0.9147 |
+| PERMITS | exclude_smallest_ols | 0.000004 | + | ✗ FLIP | 2 | 0.8200 |
 
 ### Interpretation
 
-**Assessment**: **Stable**. Signs, rank ordering, and fit are broadly consistent across specifications.
+- Sign flip(s): PERMITS (weighted_wls), PERMITS (exclude_smallest_ols)
+- WLS adj R² shift: +0.2483
+- Exclusion adj R² shift: +0.1190
+
+**Assessment**: **Sensitive**. Coefficient sign(s) reverse under alternative specification(s). The main story for 35–54 should be interpreted with caution.
 
 ---
 
@@ -74,27 +77,27 @@
 
 | Specification | n | Adj R² | AIC | RMSE | F-stat (p) |
 |---|---|---|---|---|---|
-| baseline_ols | 50 | 0.1958 | 258.4 | 3.0844 | 4.98 (0.0045) |
-| weighted_wls | 50 | 0.1844 | 253.7 | 2815.4622 | 4.69 (0.0061) |
-| exclude_smallest_ols | 40 | 0.2012 | 197.8 | 2.7368 | 4.27 (0.0111) |
+| baseline_ols | 50 | -0.0116 | 367.5 | 9.2685 | 0.72 (0.4925) |
+| weighted_wls | 50 | 0.0953 | 355.5 | 6107.1375 | 3.58 (0.0356) |
+| exclude_smallest_ols | 40 | 0.0653 | 268.7 | 6.7132 | 2.36 (0.1083) |
 
 ### Coefficient comparison
 
 | Term | Spec | Coef | Sign | Sign match | Rank | p-value |
 |---|---|---|---|---|---|---|
-| NRI_RISK_INDEX | baseline_ols | -0.051406 | - | ✓ | 1 | 0.0346 |
-| NRI_RISK_INDEX | weighted_wls | -0.051383 | - | ✓ | 1 | 0.0235 |
-| NRI_RISK_INDEX | exclude_smallest_ols | -0.051465 | - | ✓ | 1 | 0.0318 |
-| PRIV_ESTAB | baseline_ols | -0.000009 | - | ✓ | 3 | 0.0155 |
-| PRIV_ESTAB | weighted_wls | -0.000008 | - | ✓ | 3 | 0.0154 |
-| PRIV_ESTAB | exclude_smallest_ols | -0.000008 | - | ✓ | 3 | 0.0211 |
-| PRIV_AVG_PAY | baseline_ols | 0.000059 | + | ✓ | 2 | 0.1049 |
-| PRIV_AVG_PAY | weighted_wls | 0.000044 | + | ✓ | 2 | 0.1954 |
-| PRIV_AVG_PAY | exclude_smallest_ols | 0.000031 | + | ✓ | 2 | 0.3828 |
+| NRI_RISK_INDEX | baseline_ols | 0.072423 | + | ✓ | 2 | 0.5258 |
+| NRI_RISK_INDEX | weighted_wls | -0.034626 | - | ✗ FLIP | 2 | 0.7110 |
+| NRI_RISK_INDEX | exclude_smallest_ols | 0.165422 | + | ✓ | 2 | 0.1497 |
+| TRANSIT_SHARE | baseline_ols | -0.447234 | - | ✓ | 1 | 0.2441 |
+| TRANSIT_SHARE | weighted_wls | -0.406021 | - | ✓ | 1 | 0.0178 |
+| TRANSIT_SHARE | exclude_smallest_ols | -0.572802 | - | ✓ | 1 | 0.0485 |
 
 ### Interpretation
 
-**Assessment**: **Stable**. Signs, rank ordering, and fit are broadly consistent across specifications.
+- Sign flip(s): NRI_RISK_INDEX (weighted_wls)
+- WLS adj R² shift: +0.1069
+
+**Assessment**: **Sensitive**. Coefficient sign(s) reverse under alternative specification(s). The main story for 25–34 should be interpreted with caution.
 
 ---
 
@@ -104,29 +107,27 @@
 
 | Specification | n | Adj R² | AIC | RMSE | F-stat (p) |
 |---|---|---|---|---|---|
-| baseline_ols | 50 | 0.2347 | 194.1 | 1.6226 | 6.01 (0.0015) |
-| weighted_wls | 50 | 0.2113 | 192.2 | 1956.9782 | 5.38 (0.0029) |
-| exclude_smallest_ols | 40 | 0.1333 | 152.9 | 1.5601 | 3.00 (0.0432) |
+| baseline_ols | 50 | 0.0127 | 332.9 | 6.5634 | 1.31 (0.2783) |
+| weighted_wls | 50 | 0.2305 | 335.9 | 4839.2824 | 8.34 (0.0008) |
+| exclude_smallest_ols | 40 | 0.0840 | 249.6 | 5.2847 | 2.79 (0.0745) |
 
 ### Coefficient comparison
 
 | Term | Spec | Coef | Sign | Sign match | Rank | p-value |
 |---|---|---|---|---|---|---|
-| NRI_RISK_INDEX | baseline_ols | 0.040779 | + | ✓ | 1 | 0.0018 |
-| NRI_RISK_INDEX | weighted_wls | 0.036838 | + | ✓ | 1 | 0.0033 |
-| NRI_RISK_INDEX | exclude_smallest_ols | 0.028626 | + | ✓ | 1 | 0.0375 |
-| PERMITS | baseline_ols | -0.000009 | - | ✓ | 3 | 0.0590 |
-| PERMITS | weighted_wls | -0.000009 | - | ✓ | 3 | 0.0455 |
-| PERMITS | exclude_smallest_ols | -0.000009 | - | ✓ | 3 | 0.0643 |
-| POP_DENS | baseline_ols | -0.000339 | - | ✓ | 2 | 0.0456 |
-| POP_DENS | weighted_wls | -0.000318 | - | ✓ | 2 | 0.1210 |
-| POP_DENS | exclude_smallest_ols | -0.000270 | - | ✓ | 2 | 0.6480 |
+| NRI_RISK_INDEX | baseline_ols | -0.024877 | - | ✓ | 2 | 0.7552 |
+| NRI_RISK_INDEX | weighted_wls | 0.054333 | + | ✗ FLIP | 2 | 0.5327 |
+| NRI_RISK_INDEX | exclude_smallest_ols | 0.025443 | + | ✗ FLIP | 2 | 0.7894 |
+| ELEC_PRICE_TOT | baseline_ols | -0.236015 | - | ✓ | 1 | 0.1726 |
+| ELEC_PRICE_TOT | weighted_wls | -0.567112 | - | ✓ | 1 | 0.0004 |
+| ELEC_PRICE_TOT | exclude_smallest_ols | -0.480373 | - | ✓ | 1 | 0.0336 |
 
 ### Interpretation
 
-- Exclusion adj R² shift: -0.1014
+- Sign flip(s): NRI_RISK_INDEX (weighted_wls), NRI_RISK_INDEX (exclude_smallest_ols)
+- WLS adj R² shift: +0.2178
 
-**Assessment**: **Moderately sensitive**. Fit changes notably but coefficient signs are preserved. Findings are directionally consistent but magnitude/precision may differ.
+**Assessment**: **Sensitive**. Coefficient sign(s) reverse under alternative specification(s). The main story for 55–64 should be interpreted with caution.
 
 ---
 
@@ -136,39 +137,47 @@
 
 | Specification | n | Adj R² | AIC | RMSE | F-stat (p) |
 |---|---|---|---|---|---|
-| baseline_ols | 50 | 0.1310 | 161.2 | 1.1778 | 4.69 (0.0139) |
-| weighted_wls | 50 | 0.1544 | 159.5 | 2016.0596 | 5.47 (0.0073) |
-| exclude_smallest_ols | 40 | 0.1766 | 131.8 | 1.2115 | 5.18 (0.0104) |
+| baseline_ols | 50 | 0.0382 | 302.9 | 4.8579 | 1.97 (0.1503) |
+| weighted_wls | 50 | 0.2865 | 292.8 | 3859.7404 | 10.84 (0.0001) |
+| exclude_smallest_ols | 40 | 0.1872 | 223.7 | 3.8217 | 5.49 (0.0082) |
 
 ### Coefficient comparison
 
 | Term | Spec | Coef | Sign | Sign match | Rank | p-value |
 |---|---|---|---|---|---|---|
-| UNINSURED | baseline_ols | -0.101385 | - | ✓ | 1 | 0.0114 |
-| UNINSURED | weighted_wls | -0.108278 | - | ✓ | 1 | 0.0057 |
-| UNINSURED | exclude_smallest_ols | -0.124577 | - | ✓ | 1 | 0.0073 |
-| MED_HOMEVAL | baseline_ols | 0.000001 | + | ✓ | 2 | 0.1048 |
-| MED_HOMEVAL | weighted_wls | 0.000001 | + | ✓ | 2 | 0.1200 |
-| MED_HOMEVAL | exclude_smallest_ols | 0.000001 | + | ✓ | 2 | 0.1125 |
+| UNINSURED | baseline_ols | 0.287449 | + | ✓ | 1 | 0.3133 |
+| UNINSURED | weighted_wls | 0.514944 | + | ✓ | 1 | 0.0023 |
+| UNINSURED | exclude_smallest_ols | 0.680447 | + | ✓ | 1 | 0.0092 |
+| RPP | baseline_ols | -0.142742 | - | ✓ | 2 | 0.1944 |
+| RPP | weighted_wls | -0.172482 | - | ✓ | 2 | 0.0254 |
+| RPP | exclude_smallest_ols | -0.102846 | - | ✓ | 2 | 0.2816 |
 
 ### Interpretation
 
-**Assessment**: **Stable**. Signs, rank ordering, and fit are broadly consistent across specifications.
+- WLS adj R² shift: +0.2483
+- Exclusion adj R² shift: +0.1490
+
+**Assessment**: **Moderately sensitive**. Fit changes notably but coefficient signs are preserved. Findings are directionally consistent but magnitude/precision may differ.
 
 ---
 
 ## Overall Summary
 
-**Stable across specifications**: 18–24, 35–54, 25–34, 65+
-**Some sensitivity detected**: 55–64
+**Some sensitivity detected**: 18–24, 35–54, 25–34, 55–64, 65+
 
 ### Key questions
 
 **Q1: Which age groups are stable across specifications?**
-  18–24, 35–54, 25–34, 65+.
+  None are fully stable; all show some sensitivity.
 
 **Q2: Which coefficients or model stories change materially?**
-  No coefficient sign reversals detected across any age group or specification.
+  - 18–24: MED_HOMEVAL flips sign under weighted_wls (baseline +, alternative -)
+  - 18–24: MED_HOMEVAL flips sign under exclude_smallest_ols (baseline +, alternative -)
+  - 35–54: PERMITS flips sign under weighted_wls (baseline -, alternative +)
+  - 35–54: PERMITS flips sign under exclude_smallest_ols (baseline -, alternative +)
+  - 25–34: NRI_RISK_INDEX flips sign under weighted_wls (baseline +, alternative -)
+  - 55–64: NRI_RISK_INDEX flips sign under weighted_wls (baseline -, alternative +)
+  - 55–64: NRI_RISK_INDEX flips sign under exclude_smallest_ols (baseline -, alternative +)
 
 **Q3: Does denominator sensitivity alter the substantive interpretation?**
-  No. Despite detecting denominator-effect signals in 18–24 and 35–54, the main model findings are directionally robust to population-weighting and smallest-state exclusion. The substantive interpretation does not change materially.
+  Partial concern for 18–24, 35–54. In these age groups (where denominator-effect signal was detected), the alternative specifications show some sensitivity. The main conclusions should be presented alongside the robustness results, noting which findings are specification-dependent.

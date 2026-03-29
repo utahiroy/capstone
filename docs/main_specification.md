@@ -35,29 +35,13 @@ Source of truth: `outputs/tables/a6_selected_models.csv`
 
 | Age Group | IVs | Adj R² | Selection Reason |
 |-----------|-----|--------|------------------|
-| 18–24 | COMMUTE_MED + MED_HOMEVAL + UNINSURED | 0.312 | Simpler model (adj R² diff < 0.02) |
-| 25–34 | NRI_RISK_INDEX + PRIV_ESTAB + PRIV_AVG_PAY | 0.196 | Highest adj R² with VIF < 10 |
-| 35–54 | REAL_PCPI + PERMITS | 0.080 | Simpler model (adj R² diff < 0.02) |
-| 55–64 | NRI_RISK_INDEX + PERMITS + POP_DENS | 0.235 | Highest adj R² with VIF < 10 |
-| 65+ | UNINSURED + MED_HOMEVAL | 0.131 | Simpler model (adj R² diff < 0.02) |
+| 18–24 | COMMUTE_MED + MED_HOMEVAL | 0.171 | Highest adj_R2 with VIF<10 |
+| 25–34 | NRI_RISK_INDEX + TRANSIT_SHARE | -0.012 | Highest adj_R2 with VIF<10 |
+| 35–54 | REAL_PCPI + PERMITS | -0.004 | Highest adj_R2 with VIF<10 |
+| 55–64 | NRI_RISK_INDEX + ELEC_PRICE_TOT | 0.013 | Highest adj_R2 with VIF<10 |
+| 65+ | UNINSURED + RPP | 0.038 | Highest adj_R2 with VIF<10 |
 
-This is a mixed 2–3 IV specification: three age groups use 3-IV models and two use 2-IV models.
-
-### Why mixed 2–3 IV is preferred over uniform 2-IV
-
-The A6 model selection procedure (documented in `scripts/multiple_ols_a6.py`) evaluates up to 5 candidate models per age group, selecting the preferred model based on:
-
-1. **Adjusted R²** (primary fit metric)
-2. **AIC / BIC** (parsimony-adjusted fit)
-3. **VIF < 10** (multicollinearity constraint, per Marquardt 1970)
-4. **Theoretical sign plausibility** (coefficient signs checked against priors)
-5. **Simplicity preference** (if adj R² difference < 0.02, prefer the simpler model)
-
-Under these rules:
-- 18–24, 25–34, and 55–64 retain 3-IV models because the third IV contributes meaningfully to adj R² (difference ≥ 0.02 vs the 2-IV variant).
-- 35–54 and 65+ use 2-IV models because the third candidate IV does not improve adj R² by the 0.02 threshold.
-
-Forcing all models to uniform 2-IV would discard explanatory power in three age groups without a methodological justification. The mixed specification follows the selection rules stated in `docs/research-brief.md` §10 and `CLAUDE.md` without ad hoc overrides.
+The current selected specification uses 2-IV models for all five age groups.
 
 ---
 
@@ -65,19 +49,17 @@ Forcing all models to uniform 2-IV would discard explanatory power in three age 
 
 Size diagnostics (`scripts/size_diagnostics.py`) tested whether small-population states are over-represented in extreme NET_RATE rankings due to denominator effects.
 
-### Signal detected
+| Age Group | Spearman rho (POP_AGE vs |NET_RATE|) | p-value | Signal |
+|-----------|--------------------------------------|---------|--------|
+| 18–24 | -0.418 | 0.0025 | Significant |
+| 25–34 | -0.435 | 0.0016 | Significant |
+| 35–54 | -0.208 | 0.1478 | Not significant |
+| 55–64 | -0.089 | 0.5393 | Not significant |
+| 65+ | -0.079 | 0.5833 | Not significant |
 
-| Age Group | Spearman rho (POP_AGE vs \|NET_RATE\|) | p-value | Signal |
-|-----------|----------------------------------------|---------|--------|
-| 18–24 | −0.432 | 0.002 | Significant |
-| 35–54 | −0.344 | 0.014 | Significant |
-| 25–34 | −0.205 | 0.154 | Not significant |
-| 55–64 | −0.255 | 0.074 | Borderline |
-| 65+ | −0.061 | 0.673 | Not significant |
+---
 
-18–24 and 35–54 show statistically significant denominator-effect signals: small states tend to have more extreme NET_RATE values.
-
-### Robustness checks
+## Robustness Checks
 
 Three specifications per age group (`scripts/robustness_denominator_checks.py`):
 
@@ -85,20 +67,15 @@ Three specifications per age group (`scripts/robustness_denominator_checks.py`):
 2. **Population-weighted WLS** — WLS with POP_AGE as weights (n = 50)
 3. **Exclusion OLS** — drop bottom-quintile POP_AGE states (n ≈ 40)
 
-### Results
+| Age Group | Baseline Adj R² | Weighted Adj R² | Exclude-smallest Adj R² | Sign flips vs baseline |
+|-----------|-----------------|-----------------|--------------------------|------------------------|
+| 18–24 | 0.171 | 0.169 | 0.180 | 2 |
+| 25–34 | -0.012 | 0.095 | 0.065 | 1 |
+| 35–54 | -0.004 | 0.245 | 0.115 | 2 |
+| 55–64 | 0.013 | 0.231 | 0.084 | 2 |
+| 65+ | 0.038 | 0.286 | 0.187 | 0 |
 
-- **Zero coefficient sign flips** across all 5 age groups × 3 specifications.
-- **Coefficient magnitude rank ordering** preserved everywhere.
-- **18–24**: Stable. Adj R² drops modestly (0.312 → 0.255 under exclusion) but all signs, rankings, and significance patterns hold.
-- **35–54**: Stable. Adj R² slightly improves under exclusion (0.080 → 0.102). Signs preserved.
-- **55–64**: Moderately sensitive. Adj R² drops from 0.235 to 0.133 under exclusion (POP_DENS loses significance at p = 0.648). Signs preserved but precision weakens.
-- **25–34, 65+**: Stable across all specifications.
-
-### Conclusion
-
-The main findings are directionally robust to both population-weighting and smallest-state exclusion. The denominator-effect signal in 18–24 and 35–54 does not materially alter the substantive interpretation. No change to the main specification is warranted.
-
-The 55–64 model is directionally consistent but should be interpreted with the caveat that its fit is somewhat sensitive to sample composition, particularly the inclusion of the smallest states.
+Current robustness checks show 7 coefficient sign flips versus baseline across weighted and exclusion specifications. The largest exclusion-based Adj R² decline appears in 18–24 (0.171 → 0.180).
 
 ---
 
@@ -111,7 +88,7 @@ Two IVs use provisional/fallback data sources:
 | CRIME_VIOLENT_RATE | FBI CDE API unreliable; SAPI endpoint deprecated | Manual CSV from CDE portal (`data_raw/fbi_crime_state_2024.csv`) |
 | NRI_RISK_INDEX | FEMA NRI county-level data, Dec 2025 vintage | Population-weighted county→state aggregation (`data_raw/nri_counties_raw.csv`) |
 
-NRI_RISK_INDEX uses Dec 2025-vintage data, which is a methodological exception to the 2024-only design scope. This is documented in `docs/deferred-iv-validation-memo.md` and flagged in all visualization prototypes.
+NRI_RISK_INDEX uses Dec 2025-vintage data, which is a methodological exception to the 2024-only design scope. This is documented in `docs/deferred-iv-validation-memo.md`.
 
 ---
 

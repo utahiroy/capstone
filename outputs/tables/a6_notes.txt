@@ -1,0 +1,265 @@
+Phase A6: Multiple Regression — Age-Group-Specific Models
+============================================================
+
+Candidate selection rationale:
+  IVs were selected from A4 (Spearman rho) and A5 (single-variable OLS)
+  screening results. IVs appearing in the top tier of BOTH screens were
+  prioritized. Conceptually redundant IVs were not combined. Models are
+  compact (2-4 IVs) to preserve interpretability with n=50.
+
+Model comparison criteria (per CLAUDE.md):
+  1. Adjusted R² (primary)
+  2. AIC / BIC
+  3. Theoretical sign plausibility
+  4. No extreme multicollinearity (VIF < 10)
+  5. Compactness / interpretability
+
+Selection rule:
+  Highest adjusted R² among models with VIF < 10 and plausible signs.
+  If adjusted R² differences are marginal (<0.02), prefer the simpler model.
+
+============================================================
+  NET_RATE_18_24
+============================================================
+
+  M1: NET_RATE_18_24 ~ COMMUTE_MED + MED_HOMEVAL
+    adj_R²=0.1713  AIC=437.8  BIC=443.6  RMSE=18.7317  max_VIF=8.70
+    Coefficients:
+      COMMUTE_MED             coef=-2.786161  p=0.0015**  VIF=8.7
+      MED_HOMEVAL             coef=+0.000009  p=0.6607  VIF=8.7
+  M2: NET_RATE_18_24 ~ COMMUTE_MED + MED_HOMEVAL + POP
+    adj_R²=0.1595  AIC=439.5  BIC=447.1  RMSE=18.8657  max_VIF=9.55
+    Coefficients:
+      COMMUTE_MED             coef=-2.534430  p=0.0095**  VIF=9.55
+      MED_HOMEVAL             coef=+0.000010  p=0.6375  VIF=8.71
+      POP                     coef=-0.000000  p=0.5655  VIF=2.07
+  M3: NET_RATE_18_24 ~ COMMUTE_MED + MED_HOMEVAL + UNINSURED
+    adj_R²=0.1576  AIC=439.6  BIC=447.2  RMSE=18.8864  max_VIF=18.48
+    Coefficients:
+      COMMUTE_MED             coef=-2.796498  p=0.0015**  VIF=18.48
+      MED_HOMEVAL             coef=+0.000006  p=0.7630  VIF=9.03
+      UNINSURED               coef=-0.525466  p=0.6312  VIF=7.72
+  M4: NET_RATE_18_24 ~ COMMUTE_MED + MED_HOMEVAL + COST_BURDEN_ALL
+    adj_R²=0.1548  AIC=439.7  BIC=447.4  RMSE=18.9178  max_VIF=113.71
+    Coefficients:
+      COMMUTE_MED             coef=-2.609818  p=0.0156*  VIF=70.38
+      MED_HOMEVAL             coef=+0.000015  p=0.6201  VIF=17.04
+      COST_BURDEN_ALL         coef=-0.331600  p=0.7786  VIF=113.71
+  M5: NET_RATE_18_24 ~ COMMUTE_MED + MED_HOMEVAL + POP + PERMITS
+    adj_R²=0.1638  AIC=440.1  BIC=449.7  RMSE=18.8170  max_VIF=9.63
+    Coefficients:
+      COMMUTE_MED             coef=-2.494870  p=0.0105*  VIF=9.63
+      MED_HOMEVAL             coef=+0.000012  p=0.5422  VIF=8.84
+      POP                     coef=-0.000001  p=0.2232  VIF=5.92
+      PERMITS                 coef=+0.000127  p=0.2717  VIF=4.68
+
+  ** PREFERRED: M1 — adj_R²=0.1713  BIC=443.6
+
+  Preferred model coefficient table:
+                     Coef.   Std.Err.         t     P>|t|     [0.025     0.975]
+const        63.863981  17.109350  3.732695  0.000511  29.444408  98.283554
+COMMUTE_MED  -2.786161   0.823465 -3.383458  0.001452  -4.442759  -1.129562
+MED_HOMEVAL   0.000009   0.000020  0.441710  0.660725  -0.000031   0.000049
+
+============================================================
+  NET_RATE_25_34
+============================================================
+
+  M1: NET_RATE_25_34 ~ NRI_RISK_INDEX + PRIV_ESTAB
+    adj_R²=-0.0329  AIC=368.5  BIC=374.2  RMSE=9.3657  max_VIF=1.83
+    Coefficients:
+      NRI_RISK_INDEX          coef=+0.056186  p=0.6389  VIF=1.83
+      PRIV_ESTAB              coef=-0.000003  p=0.5340  VIF=1.83
+  M2: NET_RATE_25_34 ~ NRI_RISK_INDEX + PRIV_AVG_PAY
+    adj_R²=-0.0347  AIC=368.6  BIC=374.3  RMSE=9.3740  max_VIF=44.72
+    Coefficients:
+      NRI_RISK_INDEX          coef=+0.059314  p=0.6377  VIF=44.72
+      PRIV_AVG_PAY            coef=-0.000080  p=0.5809  VIF=44.72
+  M3: NET_RATE_25_34 ~ NRI_RISK_INDEX + PRIV_ESTAB + PRIV_AVG_PAY
+    adj_R²=-0.0525  AIC=370.4  BIC=378.0  RMSE=9.4540  max_VIF=45.43
+    Coefficients:
+      NRI_RISK_INDEX          coef=+0.074192  p=0.5720  VIF=44.73
+      PRIV_ESTAB              coef=-0.000003  p=0.6508  VIF=1.86
+      PRIV_AVG_PAY            coef=-0.000055  p=0.7241  VIF=45.43
+  M4: NET_RATE_25_34 ~ NRI_RISK_INDEX + TRANSIT_SHARE
+    adj_R²=-0.0116  AIC=367.5  BIC=373.2  RMSE=9.2685  max_VIF=1.47
+    Coefficients:
+      NRI_RISK_INDEX          coef=+0.072423  p=0.5258  VIF=1.47
+      TRANSIT_SHARE           coef=-0.447234  p=0.2441  VIF=1.47
+  M5: NET_RATE_25_34 ~ NRI_RISK_INDEX + PRIV_ESTAB + TRANSIT_SHARE
+    adj_R²=-0.0292  AIC=369.2  BIC=376.9  RMSE=9.3487  max_VIF=2.06
+    Coefficients:
+      NRI_RISK_INDEX          coef=+0.093351  p=0.4540  VIF=2.06
+      PRIV_ESTAB              coef=-0.000002  p=0.6591  VIF=1.94
+      TRANSIT_SHARE           coef=-0.419343  p=0.2848  VIF=1.56
+
+  ** PREFERRED: M4 — adj_R²=-0.0116  BIC=373.2
+
+  Preferred model coefficient table:
+                       Coef.  Std.Err.         t     P>|t|     [0.025     0.975]
+const          -4.401394  8.818970 -0.499083  0.620049 -22.142872  13.340085
+NRI_RISK_INDEX  0.072423  0.113298  0.639222  0.525782  -0.155504   0.300350
+TRANSIT_SHARE  -0.447234  0.379121 -1.179659  0.244072  -1.209928   0.315460
+
+============================================================
+  NET_RATE_35_54
+============================================================
+
+  M1: NET_RATE_35_54 ~ REAL_PCPI + PERMITS
+    adj_R²=-0.0036  AIC=323.9  BIC=329.7  RMSE=5.9973  max_VIF=1.49
+    Coefficients:
+      REAL_PCPI               coef=-0.000187  p=0.2046  VIF=1.49
+      PERMITS                 coef=-0.000011  p=0.6095  VIF=1.49
+  M2: NET_RATE_35_54 ~ REAL_PCPI + COST_BURDEN_ALL
+    adj_R²=0.0036  AIC=323.6  BIC=329.3  RMSE=5.9758  max_VIF=38.03
+    Coefficients:
+      REAL_PCPI               coef=-0.000157  p=0.2934  VIF=38.03
+      COST_BURDEN_ALL         coef=-0.148427  p=0.4406  VIF=38.03
+  M3: NET_RATE_35_54 ~ REAL_PCPI + NRI_RISK_INDEX
+    adj_R²=0.0342  AIC=322.0  BIC=327.8  RMSE=5.8834  max_VIF=27.41
+    Coefficients:
+      REAL_PCPI               coef=-0.000201  p=0.1660  VIF=27.41
+      NRI_RISK_INDEX          coef=-0.097472  p=0.1527  VIF=27.41
+  M4: NET_RATE_35_54 ~ REAL_PCPI + PERMITS + COST_BURDEN_ALL
+    adj_R²=-0.0173  AIC=325.5  BIC=333.2  RMSE=6.0381  max_VIF=48.27
+    Coefficients:
+      REAL_PCPI               coef=-0.000162  p=0.2908  VIF=43.64
+      PERMITS                 coef=-0.000004  p=0.8504  VIF=1.89
+      COST_BURDEN_ALL         coef=-0.130377  p=0.5472  VIF=48.27
+  M5: NET_RATE_35_54 ~ REAL_PCPI + COST_BURDEN_ALL + NRI_RISK_INDEX
+    adj_R²=0.0157  AIC=323.9  BIC=331.5  RMSE=5.9394  max_VIF=91.88
+    Coefficients:
+      REAL_PCPI               coef=-0.000220  p=0.1619  VIF=38.59
+      COST_BURDEN_ALL         coef=+0.092678  p=0.7328  VIF=91.88
+      NRI_RISK_INDEX          coef=-0.121001  p=0.2153  VIF=66.21
+
+  ** PREFERRED: M1 — adj_R²=-0.0036  BIC=329.7
+
+  Preferred model coefficient table:
+                   Coef.  Std.Err.         t     P>|t|    [0.025     0.975]
+const      13.353891  8.653904  1.543106  0.129512 -4.055518  30.763300
+REAL_PCPI  -0.000187  0.000145 -1.286289  0.204643 -0.000479   0.000105
+PERMITS    -0.000011  0.000021 -0.514263  0.609478 -0.000052   0.000031
+
+============================================================
+  NET_RATE_55_64
+============================================================
+
+  M1: NET_RATE_55_64 ~ NRI_RISK_INDEX + PERMITS
+    adj_R²=-0.0060  AIC=333.9  BIC=339.6  RMSE=6.6250  max_VIF=1.64
+    Coefficients:
+      NRI_RISK_INDEX          coef=-0.094324  p=0.2526  VIF=1.64
+      PERMITS                 coef=+0.000025  p=0.3195  VIF=1.64
+  M2: NET_RATE_55_64 ~ NRI_RISK_INDEX + ELEC_PRICE_TOT
+    adj_R²=0.0127  AIC=332.9  BIC=338.7  RMSE=6.5634  max_VIF=7.45
+    Coefficients:
+      NRI_RISK_INDEX          coef=-0.024877  p=0.7552  VIF=7.45
+      ELEC_PRICE_TOT          coef=-0.236015  p=0.1726  VIF=7.45
+  M3: NET_RATE_55_64 ~ NRI_RISK_INDEX + PERMITS + ELEC_PRICE_TOT
+    adj_R²=0.0017  AIC=334.4  BIC=342.1  RMSE=6.5997  max_VIF=9.56
+    Coefficients:
+      NRI_RISK_INDEX          coef=-0.052067  p=0.5607  VIF=9.56
+      PERMITS                 coef=+0.000018  p=0.4904  VIF=1.74
+      ELEC_PRICE_TOT          coef=-0.206082  p=0.2495  VIF=7.91
+  M4: NET_RATE_55_64 ~ NRI_RISK_INDEX + PERMITS + POP_DENS
+    adj_R²=-0.0131  AIC=335.2  BIC=342.8  RMSE=6.6486  max_VIF=2.38
+    Coefficients:
+      NRI_RISK_INDEX          coef=-0.065022  p=0.4700  VIF=2.38
+      PERMITS                 coef=+0.000023  p=0.3676  VIF=1.64
+      POP_DENS                coef=-0.003028  p=0.4182  VIF=1.72
+  M5: NET_RATE_55_64 ~ NRI_RISK_INDEX + PERMITS + REAL_PCPI
+    adj_R²=0.2057  AIC=323.0  BIC=330.6  RMSE=5.8868  max_VIF=32.37
+    Coefficients:
+      NRI_RISK_INDEX          coef=-0.113248  p=0.1253  VIF=32.37
+      PERMITS                 coef=+0.000021  p=0.3432  VIF=1.76
+      REAL_PCPI               coef=-0.000525  p=0.0006***  VIF=29.44
+
+  ** PREFERRED: M2 — adj_R²=0.0127  BIC=338.7
+
+  Preferred model coefficient table:
+                       Coef.  Std.Err.         t     P>|t|    [0.025     0.975]
+const           6.533018  5.993671  1.089986  0.281276 -5.524693  18.590728
+NRI_RISK_INDEX -0.024877  0.079337 -0.313559  0.755243 -0.184483   0.134729
+ELEC_PRICE_TOT -0.236015  0.170425 -1.384863  0.172633 -0.578866   0.106836
+
+============================================================
+  NET_RATE_65_PLUS
+============================================================
+
+  M1: NET_RATE_65_PLUS ~ UNINSURED + BA_PLUS
+    adj_R²=0.0288  AIC=303.4  BIC=309.1  RMSE=4.8816  max_VIF=6.31
+    Coefficients:
+      UNINSURED               coef=+0.263290  p=0.3786  VIF=6.31
+      BA_PLUS                 coef=-0.156490  p=0.2672  VIF=6.31
+  M2: NET_RATE_65_PLUS ~ UNINSURED + RPP
+    adj_R²=0.0382  AIC=302.9  BIC=308.6  RMSE=4.8579  max_VIF=8.45
+    Coefficients:
+      UNINSURED               coef=+0.287449  p=0.3133  VIF=8.45
+      RPP                     coef=-0.142742  p=0.1944  VIF=8.45
+  M3: NET_RATE_65_PLUS ~ UNINSURED + MED_HOMEVAL
+    adj_R²=0.0070  AIC=304.5  BIC=310.2  RMSE=4.9360  max_VIF=3.63
+    Coefficients:
+      UNINSURED               coef=+0.364738  p=0.2055  VIF=3.63
+      MED_HOMEVAL             coef=-0.000002  p=0.6548  VIF=3.63
+  M4: NET_RATE_65_PLUS ~ UNINSURED + BA_PLUS + RPP
+    adj_R²=0.0190  AIC=304.8  BIC=312.4  RMSE=4.9063  max_VIF=134.09
+    Coefficients:
+      UNINSURED               coef=+0.263260  p=0.3812  VIF=10.25
+      BA_PLUS                 coef=-0.055151  p=0.7814  VIF=100.19
+      RPP                     coef=-0.112327  p=0.4709  VIF=134.09
+  M5: NET_RATE_65_PLUS ~ UNINSURED + BA_PLUS + MED_HOMEVAL
+    adj_R²=0.0088  AIC=305.3  BIC=312.9  RMSE=4.9317  max_VIF=20.50
+    Coefficients:
+      UNINSURED               coef=+0.265466  p=0.3799  VIF=6.6
+      BA_PLUS                 coef=-0.178457  p=0.3035  VIF=20.5
+      MED_HOMEVAL             coef=+0.000001  p=0.8235  VIF=11.8
+
+  ** PREFERRED: M2 — adj_R²=0.0382  BIC=308.6
+
+  Preferred model coefficient table:
+                   Coef.   Std.Err.         t     P>|t|     [0.025     0.975]
+const      11.923255  11.369550  1.048701  0.299679 -10.949328  34.795839
+UNINSURED   0.287449   0.282035  1.019196  0.313328  -0.279932   0.854829
+RPP        -0.142742   0.108430 -1.316441  0.194410  -0.360874   0.075391
+
+
+============================================================
+SUMMARY OF SELECTED MODELS
+============================================================
+
+  18_24     : M1  IVs=[COMMUTE_MED, MED_HOMEVAL]  adj_R²=0.1713  max_VIF=8.70
+  25_34     : M4  IVs=[NRI_RISK_INDEX, TRANSIT_SHARE]  adj_R²=-0.0116  max_VIF=1.47
+  35_54     : M1  IVs=[REAL_PCPI, PERMITS]  adj_R²=-0.0036  max_VIF=1.49
+  55_64     : M2  IVs=[NRI_RISK_INDEX, ELEC_PRICE_TOT]  adj_R²=0.0127  max_VIF=7.45
+  65_PLUS   : M2  IVs=[UNINSURED, RPP]  adj_R²=0.0382  max_VIF=8.45
+
+METHODOLOGICAL NOTES
+----------------------------------------
+
+Verified results:
+  - All models use OLS with intercept, no transforms, n=50 states
+  - VIF computed from statsmodels variance_inflation_factor on IV matrix only
+    (intercept excluded from VIF computation)
+  - Adjusted R² accounts for number of predictors
+  - VIF threshold for model viability: max_VIF < 10 (standard threshold for
+    'no extreme multicollinearity'; see Marquardt 1970, Hair et al. 2010)
+  - Models with max_VIF >= 10 are excluded from selection unless all
+    candidates exceed this threshold
+  - Simplicity preference: if adj_R² improvement < 0.02, prefer fewer IVs
+
+Implementation assumptions:
+  - Candidate IVs were selected from A4/A5 screening (not exhaustive search)
+  - 5 candidate models per age group; more combinations are possible
+  - Sign plausibility was assessed but not used as a hard filter —
+    all signs in selected models are noted in sign_check column
+
+Interpretation / opinion:
+  - Weak overall fit (adj_R² < 0.15 for some age groups) is expected for a
+    50-state cross-section with no transforms. State-level migration is
+    influenced by many factors not captured by 22 aggregate IVs.
+  - Different age groups having different top predictors is consistent with
+    migration theory (amenity vs. employment vs. cost motives differ by age).
+  - These are associations, not causal estimates.
+  - NRI_RISK_INDEX sign reversal across age groups (negative for 25-34,
+    positive for 55-64) may reflect different migration motives by age.
+    This requires careful interpretation in the final report.
