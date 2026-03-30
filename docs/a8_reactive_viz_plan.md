@@ -1,8 +1,8 @@
 # A8 Reactive Visualization — Design Memo
 
-**Phase**: A8-2 (MVP implementation complete)
-**Status**: Working MVP
-**Date**: 2026-03-24
+**Phase**: A8-3 (research polish)
+**Status**: Working — real-data refresh integrated
+**Date**: 2026-03-30
 
 ---
 
@@ -173,8 +173,8 @@ Estimated touch points: 1 new file (`a8_dashboard.py`), 1 edit (`requirements.tx
 | Risk | Mitigation |
 |------|------------|
 | Dash adds a server dependency (vs static HTML) | App is local-only; document `python scripts/a8_dashboard.py` |
-| Synthetic data may look odd in coordinated view | Note in UI footer; same caveat as A7 |
-| 35–54 model is weak (adj R² = 0.08) | Display R² on scatter; do not hide weak fits |
+| Real data may show weak/null model fits | Display adj R² + fit-quality label; show residuals honestly |
+| Most age groups have adj R² near zero | Display warning on scatter and residual panels; document in footnotes |
 | Callback complexity grows with panels | Keep callback graph flat (no chained callbacks in MVP) |
 
 ---
@@ -215,7 +215,69 @@ All four MVP panels are fully implemented with cross-panel coordination:
 
 **Deferred to future phases**:
 - Robustness selector (WLS / smallest-state exclusion toggle)
-- Residual map panel
 - Method / data-provenance drawer
 - Advanced styling and responsive layout polish
-- Scatter click → highlight on map (reverse direction from current map→scatter flow) — works via shared state but geographic highlight is star-only
+
+---
+
+## 12. A8-3 research polish notes
+
+**Completed** (2026-03-30):
+
+Synced working branch with manually refreshed real-data outputs from `main`.
+All canonical models now reflect the refreshed A6 results (weaker fits).
+
+### New features
+
+| Feature | Details |
+|---------|---------|
+| **Metric toggle** | RadioItems: NET_RATE (per 1k) / NET_COUNT; affects choropleth and described in tooltips |
+| **Denominator context** | POP_AGE shown in map hover, profile hover, and ranking table column |
+| **Small-pop flag** | Bottom 5 states by POP_AGE marked with ⚠ triangle on map, scatter, and ranking table |
+| **Residual map panel** | New choropleth showing actual − predicted from A6 coefficients; diverging scale; selected-state highlighting; model formula + adj R² in subtitle |
+| **Fit-quality warnings** | Scatter title and ranking subtitle display adj R² with human-readable label (no explanatory power / very weak / weak / modest) |
+| **Profile with counts** | Hover on profile bars shows NET_COUNT and POP_AGE alongside NET_RATE |
+| **Methodology footnotes** | Color legend, rate definition, small-pop explanation, 18–24 college caveat, model description |
+
+### Canonical models (refreshed real data)
+
+| Age group | IVs | Adj R² | Quality |
+|-----------|-----|--------|---------|
+| 18–24 | COMMUTE_MED + MED_HOMEVAL | 0.1713 | modest fit |
+| 25–34 | NRI_RISK_INDEX + TRANSIT_SHARE | −0.0116 | no explanatory power |
+| 35–54 | REAL_PCPI + PERMITS | −0.0036 | no explanatory power |
+| 55–64 | NRI_RISK_INDEX + ELEC_PRICE_TOT | 0.0127 | very weak fit |
+| 65+ | UNINSURED + RPP | 0.0382 | very weak fit |
+
+### Layout (A8-3)
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  [Age ▼] (NET_RATE / NET_COUNT) [IV ▼]    A8 Dashboard     │
+├──────────────────────────┬──────────────────────────────────┤
+│  Choropleth Map          │  IV vs NET_RATE Scatter          │
+│  (metric toggle, ⚠ flag) │  (OLS line, adj R² warning)     │
+├──────────────────────────┼──────────────────────────────────┤
+│  Residual Map            │  State Profile                   │
+│  (actual − predicted)    │  (5 age groups, POP context)     │
+├──────────────────────────┴──────────────────────────────────┤
+│  Top 10 / Bottom 10 Ranking                                │
+│  (NET_RATE, NET_COUNT, POP_AGE, ⚠ flag, adj R² label)      │
+├─────────────────────────────────────────────────────────────┤
+│  Methodology footnotes                                      │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Key interpretation note
+
+> The 22 state-level IVs do **not** strongly explain age-specific interstate
+> net migration in 2024. Only 18–24 shows modest explanatory power, and that
+> group likely captures substantial college-related migration. The dashboard
+> presents these weak results honestly with fit-quality labels and residual
+> visualization.
+
+### Remaining deferred items
+- Full robustness selector (WLS / exclusion toggle)
+- Method/data-provenance drawer with collapsible sections
+- Advanced responsive styling
+- IN_RATE / OUT_RATE decomposition view (considered but deferred to avoid clutter)
