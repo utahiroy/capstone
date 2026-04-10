@@ -1,0 +1,251 @@
+variable,rank_type,rank,state_name,abbrev,value
+REL_IN_18_24,top,1,North Dakota,ND,1.597837
+REL_IN_18_24,top,2,Iowa,IA,1.510135
+REL_IN_18_24,top,3,Vermont,VT,1.488439
+REL_IN_18_24,top,4,Utah,UT,1.470547
+REL_IN_18_24,top,5,Rhode Island,RI,1.422777
+REL_IN_18_24,bottom,50,Nevada,NV,0.496379
+REL_IN_18_24,bottom,49,Florida,FL,0.643635
+REL_IN_18_24,bottom,48,New Jersey,NJ,0.675442
+REL_IN_18_24,bottom,47,Georgia,GA,0.765456
+REL_IN_18_24,bottom,46,New Mexico,NM,0.785225
+REL_IN_25_34,top,1,New York,NY,1.26693
+REL_IN_25_34,top,2,Alaska,AK,1.266404
+REL_IN_25_34,top,3,Maryland,MD,1.197234
+REL_IN_25_34,top,4,Rhode Island,RI,1.193749
+REL_IN_25_34,top,5,New Jersey,NJ,1.189613
+REL_IN_25_34,bottom,50,North Dakota,ND,0.634401
+REL_IN_25_34,bottom,49,Arkansas,AR,0.637029
+REL_IN_25_34,bottom,48,Vermont,VT,0.711422
+REL_IN_25_34,bottom,47,West Virginia,WV,0.749821
+REL_IN_25_34,bottom,46,South Dakota,SD,0.763929
+REL_IN_35_54,top,1,Nevada,NV,1.38544
+REL_IN_35_54,top,2,Georgia,GA,1.298745
+REL_IN_35_54,top,3,Louisiana,LA,1.249687
+REL_IN_35_54,top,4,Texas,TX,1.16255
+REL_IN_35_54,top,5,New Jersey,NJ,1.160435
+REL_IN_35_54,bottom,50,Rhode Island,RI,0.731328
+REL_IN_35_54,bottom,49,Wisconsin,WI,0.741272
+REL_IN_35_54,bottom,48,New York,NY,0.744689
+REL_IN_35_54,bottom,47,Massachusetts,MA,0.757601
+REL_IN_35_54,bottom,46,Iowa,IA,0.786292
+REL_IN_55_64,top,1,Florida,FL,1.696015
+REL_IN_55_64,top,2,Delaware,DE,1.437299
+REL_IN_55_64,top,3,Arizona,AZ,1.385982
+REL_IN_55_64,top,4,New Hampshire,NH,1.345999
+REL_IN_55_64,top,5,Tennessee,TN,1.326785
+REL_IN_55_64,bottom,50,Rhode Island,RI,0.542136
+REL_IN_55_64,bottom,49,Massachusetts,MA,0.559295
+REL_IN_55_64,bottom,48,North Dakota,ND,0.596777
+REL_IN_55_64,bottom,47,Alaska,AK,0.608365
+REL_IN_55_64,bottom,46,New York,NY,0.670598
+REL_IN_65_PLUS,top,1,Florida,FL,1.830234
+REL_IN_65_PLUS,top,2,Arizona,AZ,1.615992
+REL_IN_65_PLUS,top,3,Maine,ME,1.482528
+REL_IN_65_PLUS,top,4,Oregon,OR,1.335996
+REL_IN_65_PLUS,top,5,Nevada,NV,1.311853
+REL_IN_65_PLUS,bottom,50,Alaska,AK,0.373728
+REL_IN_65_PLUS,bottom,49,Rhode Island,RI,0.418911
+REL_IN_65_PLUS,bottom,48,New York,NY,0.544333
+REL_IN_65_PLUS,bottom,47,Utah,UT,0.587485
+REL_IN_65_PLUS,bottom,46,Wyoming,WY,0.66658
+REL_OUT_18_24,top,1,Minnesota,MN,1.395835
+REL_OUT_18_24,top,2,Maine,ME,1.337584
+REL_OUT_18_24,top,3,Wisconsin,WI,1.335394
+REL_OUT_18_24,top,4,Utah,UT,1.302249
+REL_OUT_18_24,top,5,Vermont,VT,1.267156
+REL_OUT_18_24,bottom,50,Kentucky,KY,0.728081
+REL_OUT_18_24,bottom,49,Florida,FL,0.735195
+REL_OUT_18_24,bottom,48,Nevada,NV,0.781473
+REL_OUT_18_24,bottom,47,Hawaii,HI,0.790761
+REL_OUT_18_24,bottom,46,New York,NY,0.841196
+REL_OUT_25_34,top,1,Hawaii,HI,1.254201
+REL_OUT_25_34,top,2,Delaware,DE,1.245863
+REL_OUT_25_34,top,3,Massachusetts,MA,1.181439
+REL_OUT_25_34,top,4,Oklahoma,OK,1.168356
+REL_OUT_25_34,top,5,Kentucky,KY,1.145265
+REL_OUT_25_34,bottom,50,Louisiana,LA,0.68578
+REL_OUT_25_34,bottom,49,New Mexico,NM,0.736832
+REL_OUT_25_34,bottom,48,Maine,ME,0.807301
+REL_OUT_25_34,bottom,47,Wisconsin,WI,0.809413
+REL_OUT_25_34,bottom,46,Wyoming,WY,0.826531
+REL_OUT_35_54,top,1,Louisiana,LA,1.494521
+REL_OUT_35_54,top,2,Kentucky,KY,1.179747
+REL_OUT_35_54,top,3,New Mexico,NM,1.175186
+REL_OUT_35_54,top,4,Florida,FL,1.146905
+REL_OUT_35_54,top,5,Arkansas,AR,1.133185
+REL_OUT_35_54,bottom,50,Delaware,DE,0.582708
+REL_OUT_35_54,bottom,49,Maine,ME,0.656806
+REL_OUT_35_54,bottom,48,Massachusetts,MA,0.706302
+REL_OUT_35_54,bottom,47,New Hampshire,NH,0.731249
+REL_OUT_35_54,bottom,46,Minnesota,MN,0.741553
+REL_OUT_55_64,top,1,Arizona,AZ,1.248326
+REL_OUT_55_64,top,2,New Hampshire,NH,1.239707
+REL_OUT_55_64,top,3,Nevada,NV,1.223749
+REL_OUT_55_64,top,4,Tennessee,TN,1.195378
+REL_OUT_55_64,top,5,South Dakota,SD,1.153704
+REL_OUT_55_64,bottom,50,North Dakota,ND,0.530097
+REL_OUT_55_64,bottom,49,Utah,UT,0.657913
+REL_OUT_55_64,bottom,48,Rhode Island,RI,0.669926
+REL_OUT_55_64,bottom,47,Iowa,IA,0.745323
+REL_OUT_55_64,bottom,46,Idaho,ID,0.752041
+REL_OUT_65_PLUS,top,1,New Mexico,NM,1.561327
+REL_OUT_65_PLUS,top,2,Maine,ME,1.491216
+REL_OUT_65_PLUS,top,3,Florida,FL,1.448881
+REL_OUT_65_PLUS,top,4,Arizona,AZ,1.379052
+REL_OUT_65_PLUS,top,5,Michigan,MI,1.312741
+REL_OUT_65_PLUS,bottom,50,Kansas,KS,0.581877
+REL_OUT_65_PLUS,bottom,49,Mississippi,MS,0.593987
+REL_OUT_65_PLUS,bottom,48,Utah,UT,0.616651
+REL_OUT_65_PLUS,bottom,47,Oklahoma,OK,0.647122
+REL_OUT_65_PLUS,bottom,46,Texas,TX,0.710218
+DIFF_IN_18_24,top,1,New York,NY,0.010198
+DIFF_IN_18_24,top,2,Massachusetts,MA,0.007297
+DIFF_IN_18_24,top,3,Illinois,IL,0.006369
+DIFF_IN_18_24,top,4,Utah,UT,0.006245
+DIFF_IN_18_24,top,5,Wisconsin,WI,0.006142
+DIFF_IN_18_24,bottom,50,Florida,FL,-0.028611
+DIFF_IN_18_24,bottom,49,Texas,TX,-0.009258
+DIFF_IN_18_24,bottom,48,Nevada,NV,-0.009153
+DIFF_IN_18_24,bottom,47,Georgia,GA,-0.008259
+DIFF_IN_18_24,bottom,46,New Jersey,NJ,-0.006927
+DIFF_IN_25_34,top,1,New York,NY,0.011478
+DIFF_IN_25_34,top,2,California,CA,0.010881
+DIFF_IN_25_34,top,3,Texas,TX,0.007927
+DIFF_IN_25_34,top,4,Washington,WA,0.005344
+DIFF_IN_25_34,top,5,Colorado,CO,0.004736
+DIFF_IN_25_34,bottom,50,Florida,FL,-0.017786
+DIFF_IN_25_34,bottom,49,South Carolina,SC,-0.004503
+DIFF_IN_25_34,bottom,48,Arizona,AZ,-0.004315
+DIFF_IN_25_34,bottom,47,Arkansas,AR,-0.003127
+DIFF_IN_25_34,bottom,46,North Carolina,NC,-0.002835
+DIFF_IN_35_54,top,1,Texas,TX,0.012298
+DIFF_IN_35_54,top,2,Georgia,GA,0.010519
+DIFF_IN_35_54,top,3,Nevada,NV,0.007005
+DIFF_IN_35_54,top,4,New Jersey,NJ,0.003424
+DIFF_IN_35_54,top,5,Florida,FL,0.002862
+DIFF_IN_35_54,bottom,50,New York,NY,-0.010978
+DIFF_IN_35_54,bottom,49,Massachusetts,MA,-0.005518
+DIFF_IN_35_54,bottom,48,Illinois,IL,-0.005111
+DIFF_IN_35_54,bottom,47,Wisconsin,WI,-0.004344
+DIFF_IN_35_54,bottom,46,Tennessee,TN,-0.003551
+DIFF_IN_55_64,top,1,Florida,FL,0.055881
+DIFF_IN_55_64,top,2,Arizona,AZ,0.012864
+DIFF_IN_55_64,top,3,Tennessee,TN,0.008808
+DIFF_IN_55_64,top,4,North Carolina,NC,0.007645
+DIFF_IN_55_64,top,5,Nevada,NV,0.00552
+DIFF_IN_55_64,bottom,50,California,CA,-0.018376
+DIFF_IN_55_64,bottom,49,New York,NY,-0.014164
+DIFF_IN_55_64,bottom,48,Washington,WA,-0.010237
+DIFF_IN_55_64,bottom,47,Massachusetts,MA,-0.010033
+DIFF_IN_55_64,bottom,46,Pennsylvania,PA,-0.009016
+DIFF_IN_65_PLUS,top,1,Florida,FL,0.066656
+DIFF_IN_65_PLUS,top,2,Arizona,AZ,0.020529
+DIFF_IN_65_PLUS,top,3,South Carolina,SC,0.006858
+DIFF_IN_65_PLUS,top,4,Oregon,OR,0.005929
+DIFF_IN_65_PLUS,top,5,Nevada,NV,0.005668
+DIFF_IN_65_PLUS,bottom,50,New York,NY,-0.019593
+DIFF_IN_65_PLUS,bottom,49,Texas,TX,-0.019459
+DIFF_IN_65_PLUS,bottom,48,Illinois,IL,-0.008071
+DIFF_IN_65_PLUS,bottom,47,California,CA,-0.007359
+DIFF_IN_65_PLUS,bottom,46,Washington,WA,-0.006804
+DIFF_OUT_18_24,top,1,Illinois,IL,0.008798
+DIFF_OUT_18_24,top,2,Minnesota,MN,0.006467
+DIFF_OUT_18_24,top,3,New Jersey,NJ,0.00626
+DIFF_OUT_18_24,top,4,Wisconsin,WI,0.005196
+DIFF_OUT_18_24,top,5,Massachusetts,MA,0.00486
+DIFF_OUT_18_24,bottom,50,Florida,FL,-0.018601
+DIFF_OUT_18_24,bottom,49,New York,NY,-0.009518
+DIFF_OUT_18_24,bottom,48,California,CA,-0.008871
+DIFF_OUT_18_24,bottom,47,North Carolina,NC,-0.003691
+DIFF_OUT_18_24,bottom,46,Kentucky,KY,-0.003135
+DIFF_OUT_25_34,top,1,New York,NY,0.005554
+DIFF_OUT_25_34,top,2,Massachusetts,MA,0.00498
+DIFF_OUT_25_34,top,3,North Carolina,NC,0.003452
+DIFF_OUT_25_34,top,4,Virginia,VA,0.002718
+DIFF_OUT_25_34,top,5,Texas,TX,0.002712
+DIFF_OUT_25_34,bottom,50,Florida,FL,-0.004964
+DIFF_OUT_25_34,bottom,49,Illinois,IL,-0.004635
+DIFF_OUT_25_34,bottom,48,New Jersey,NJ,-0.004371
+DIFF_OUT_25_34,bottom,47,Louisiana,LA,-0.003817
+DIFF_OUT_25_34,bottom,46,Wisconsin,WI,-0.002952
+DIFF_OUT_35_54,top,1,Florida,FL,0.010319
+DIFF_OUT_35_54,top,2,California,CA,0.008517
+DIFF_OUT_35_54,top,3,Texas,TX,0.006014
+DIFF_OUT_35_54,top,4,Louisiana,LA,0.006007
+DIFF_OUT_35_54,top,5,Virginia,VA,0.00428
+DIFF_OUT_35_54,bottom,50,Massachusetts,MA,-0.008061
+DIFF_OUT_35_54,bottom,49,Michigan,MI,-0.005033
+DIFF_OUT_35_54,bottom,48,Minnesota,MN,-0.004222
+DIFF_OUT_35_54,bottom,47,Illinois,IL,-0.003977
+DIFF_OUT_35_54,bottom,46,Pennsylvania,PA,-0.003396
+DIFF_OUT_55_64,top,1,California,CA,0.007562
+DIFF_OUT_55_64,top,2,Arizona,AZ,0.00637
+DIFF_OUT_55_64,top,3,Florida,FL,0.006006
+DIFF_OUT_55_64,top,4,New York,NY,0.004498
+DIFF_OUT_55_64,top,5,Tennessee,TN,0.004231
+DIFF_OUT_55_64,bottom,50,Virginia,VA,-0.005923
+DIFF_OUT_55_64,bottom,49,Texas,TX,-0.004691
+DIFF_OUT_55_64,bottom,48,Utah,UT,-0.004114
+DIFF_OUT_55_64,bottom,47,South Carolina,SC,-0.003697
+DIFF_OUT_55_64,bottom,46,Indiana,IN,-0.003331
+DIFF_OUT_65_PLUS,top,1,Florida,FL,0.031531
+DIFF_OUT_65_PLUS,top,2,Arizona,AZ,0.009723
+DIFF_OUT_65_PLUS,top,3,Michigan,MI,0.006215
+DIFF_OUT_65_PLUS,top,4,South Carolina,SC,0.00473
+DIFF_OUT_65_PLUS,top,5,New Mexico,NM,0.004587
+DIFF_OUT_65_PLUS,bottom,50,Texas,TX,-0.019001
+DIFF_OUT_65_PLUS,bottom,49,Virginia,VA,-0.00849
+DIFF_OUT_65_PLUS,bottom,48,Massachusetts,MA,-0.004841
+DIFF_OUT_65_PLUS,bottom,47,Kansas,KS,-0.004837
+DIFF_OUT_65_PLUS,bottom,46,Utah,UT,-0.00461
+SHARE_GAP_18_24,top,1,South Carolina,SC,0.010119
+SHARE_GAP_18_24,top,2,North Carolina,NC,0.009839
+SHARE_GAP_18_24,top,3,Tennessee,TN,0.006342
+SHARE_GAP_18_24,top,4,Missouri,MO,0.005277
+SHARE_GAP_18_24,top,5,Arizona,AZ,0.005008
+SHARE_GAP_18_24,bottom,50,California,CA,-0.024863
+SHARE_GAP_18_24,bottom,49,New Jersey,NJ,-0.02303
+SHARE_GAP_18_24,bottom,48,Illinois,IL,-0.014437
+SHARE_GAP_18_24,bottom,47,Maryland,MD,-0.007549
+SHARE_GAP_18_24,bottom,46,Minnesota,MN,-0.006477
+SHARE_GAP_25_34,top,1,Texas,TX,0.015299
+SHARE_GAP_25_34,top,2,Washington,WA,0.007472
+SHARE_GAP_25_34,top,3,Tennessee,TN,0.006634
+SHARE_GAP_25_34,top,4,Maryland,MD,0.005808
+SHARE_GAP_25_34,top,5,Arizona,AZ,0.00492
+SHARE_GAP_25_34,bottom,50,California,CA,-0.021489
+SHARE_GAP_25_34,bottom,49,New York,NY,-0.011013
+SHARE_GAP_25_34,bottom,48,Massachusetts,MA,-0.006851
+SHARE_GAP_25_34,bottom,47,Illinois,IL,-0.004522
+SHARE_GAP_25_34,bottom,46,Florida,FL,-0.002779
+SHARE_GAP_35_54,top,1,Texas,TX,0.016367
+SHARE_GAP_35_54,top,2,Georgia,GA,0.012392
+SHARE_GAP_35_54,top,3,Nevada,NV,0.011978
+SHARE_GAP_35_54,top,4,North Carolina,NC,0.010639
+SHARE_GAP_35_54,top,5,South Carolina,SC,0.008074
+SHARE_GAP_35_54,bottom,50,California,CA,-0.046119
+SHARE_GAP_35_54,bottom,49,New York,NY,-0.031507
+SHARE_GAP_35_54,bottom,48,Illinois,IL,-0.013142
+SHARE_GAP_35_54,bottom,47,Louisiana,LA,-0.006115
+SHARE_GAP_35_54,bottom,46,New Jersey,NJ,-0.005615
+SHARE_GAP_55_64,top,1,Florida,FL,0.059917
+SHARE_GAP_55_64,top,2,North Carolina,NC,0.018844
+SHARE_GAP_55_64,top,3,South Carolina,SC,0.015558
+SHARE_GAP_55_64,top,4,Arizona,AZ,0.01417
+SHARE_GAP_55_64,top,5,Tennessee,TN,0.009877
+SHARE_GAP_55_64,bottom,50,California,CA,-0.060064
+SHARE_GAP_55_64,bottom,49,New York,NY,-0.035599
+SHARE_GAP_55_64,bottom,48,Illinois,IL,-0.016636
+SHARE_GAP_55_64,bottom,47,Pennsylvania,PA,-0.013033
+SHARE_GAP_55_64,bottom,46,Massachusetts,MA,-0.011845
+SHARE_GAP_65_PLUS,top,1,Florida,FL,0.045168
+SHARE_GAP_65_PLUS,top,2,Arizona,AZ,0.018483
+SHARE_GAP_65_PLUS,top,3,South Carolina,SC,0.010366
+SHARE_GAP_65_PLUS,top,4,Texas,TX,0.009626
+SHARE_GAP_65_PLUS,top,5,Virginia,VA,0.008773
+SHARE_GAP_65_PLUS,bottom,50,California,CA,-0.042696
+SHARE_GAP_65_PLUS,bottom,49,New York,NY,-0.033337
+SHARE_GAP_65_PLUS,bottom,48,Illinois,IL,-0.019666
+SHARE_GAP_65_PLUS,bottom,47,New Jersey,NJ,-0.009545
+SHARE_GAP_65_PLUS,bottom,46,Maryland,MD,-0.007601
