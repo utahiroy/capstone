@@ -1,0 +1,51 @@
+dropped_state,dropped_name,adj_r2,coef_PRIV_AVG_PAY,sign_PRIV_AVG_PAY,coef_COMMUTE_MED,sign_COMMUTE_MED
+AL,Alabama,0.4186,7e-06,+,0.011698,+
+AK,Alaska,0.5045,6e-06,+,0.017713,+
+AZ,Arizona,0.428,7e-06,+,0.011831,+
+AR,Arkansas,0.4135,7e-06,+,0.011282,+
+CA,California,0.3958,7e-06,+,0.011515,+
+CO,Colorado,0.4108,7e-06,+,0.011852,+
+CT,Connecticut,0.4448,8e-06,+,0.009975,+
+DE,Delaware,0.4473,7e-06,+,0.011625,+
+FL,Florida,0.4521,7e-06,+,0.013927,+
+GA,Georgia,0.4234,7e-06,+,0.011898,+
+HI,Hawaii,0.4276,7e-06,+,0.010564,+
+ID,Idaho,0.4178,7e-06,+,0.011446,+
+IL,Illinois,0.4128,7e-06,+,0.011239,+
+IN,Indiana,0.4224,7e-06,+,0.011272,+
+IA,Iowa,0.4135,7e-06,+,0.011238,+
+KS,Kansas,0.4412,7e-06,+,0.012573,+
+KY,Kentucky,0.4272,7e-06,+,0.011169,+
+LA,Louisiana,0.4188,7e-06,+,0.011428,+
+ME,Maine,0.4266,7e-06,+,0.011278,+
+MD,Maryland,0.4024,7e-06,+,0.009255,+
+MA,Massachusetts,0.4183,8e-06,+,0.011552,+
+MI,Michigan,0.4207,7e-06,+,0.011389,+
+MN,Minnesota,0.4226,7e-06,+,0.012084,+
+MS,Mississippi,0.4145,7e-06,+,0.01122,+
+MO,Missouri,0.4294,7e-06,+,0.011232,+
+MT,Montana,0.4116,7e-06,+,0.01133,+
+NE,Nebraska,0.412,7e-06,+,0.011137,+
+NV,Nevada,0.4208,7e-06,+,0.011551,+
+NH,New Hampshire,0.4203,7e-06,+,0.011371,+
+NJ,New Jersey,0.3977,7e-06,+,0.01083,+
+NM,New Mexico,0.4387,7e-06,+,0.011229,+
+NY,New York,0.3717,7e-06,+,0.011104,+
+NC,North Carolina,0.4214,7e-06,+,0.011468,+
+ND,North Dakota,0.4195,8e-06,+,0.006684,+
+OH,Ohio,0.423,7e-06,+,0.011338,+
+OK,Oklahoma,0.4208,7e-06,+,0.01136,+
+OR,Oregon,0.421,7e-06,+,0.011181,+
+PA,Pennsylvania,0.4199,7e-06,+,0.011365,+
+RI,Rhode Island,0.4492,7e-06,+,0.010592,+
+SC,South Carolina,0.4188,7e-06,+,0.012049,+
+SD,South Dakota,0.4039,7e-06,+,0.010823,+
+TN,Tennessee,0.4271,7e-06,+,0.010787,+
+TX,Texas,0.4146,7e-06,+,0.011249,+
+UT,Utah,0.4199,7e-06,+,0.01118,+
+VT,Vermont,0.4239,7e-06,+,0.011191,+
+VA,Virginia,0.422,7e-06,+,0.011503,+
+WA,Washington,0.3982,7e-06,+,0.011405,+
+WV,West Virginia,0.4134,7e-06,+,0.012094,+
+WI,Wisconsin,0.419,7e-06,+,0.011393,+
+WY,Wyoming,0.4047,7e-06,+,0.010587,+

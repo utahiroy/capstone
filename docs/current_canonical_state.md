@@ -8,7 +8,9 @@
 ## Active analytical framework
 
 The current active analysis uses **distribution-share specialization metrics**
-as the main dependent variables, not net migration rates.
+as the main dependent variables, not net migration rates. A **focused deep
+dive** on the two strongest DVs (REL_IN_25_34, REL_IN_18_24) has been
+completed with multivariable models and presentation-ready figures.
 
 ### DVs in use
 
@@ -24,7 +26,7 @@ as the main dependent variables, not net migration rates.
 
 The fixed 22 state-level explanatory variables are unchanged.
 
-### Key finding
+### Key finding (specialization screening)
 
 Specialization ratios (REL_IN, REL_OUT) successfully remove state-size
 confounding. Substantive IVs now emerge:
@@ -32,6 +34,18 @@ confounding. Substantive IVs now emerge:
 - 18-24: NRI_RISK_INDEX / COMMUTE_MED — college-town/rural pull
 - 35-54: UNINSURED / VACANCY_RATE — cost-of-living relocation
 - 55-64 / 65+: VACANCY_RATE / REAL_PCPI — retirement migration
+
+### Key finding (focused deep dive — multivariable models)
+
+| DV | Preferred Model | IVs | Adj R² | Max VIF | LOO Sign Flips |
+|----|-----------------|-----|--------|---------|----------------|
+| REL_IN_25_34 | M25_2IV | PRIV_AVG_PAY + COMMUTE_MED | 0.4213 | 1.54 | 0 |
+| REL_IN_18_24 | M18_3IV | COMMUTE_MED + VACANCY_RATE + TRANSIT_SHARE | 0.4154 | 1.90 | 0 |
+
+**Central finding**: 25–34 and 18–24 migration respond to opposite state
+characteristics. Early-career workers chase wages and dense metro labor
+markets. College-age movers go where housing is available and commutes are
+short — hallmarks of college towns and smaller cities.
 
 ---
 
@@ -56,12 +70,20 @@ confounding. Substantive IVs now emerge:
 | `outputs/figures/distribution_shares/` | 12 raw share choropleth maps |
 | `outputs/figures/specialization/` | 25 maps + 9 profiles + 10 rank-shift dumbbells |
 
+### Current (focused deep dive phase)
+
+| Directory | Contents |
+|-----------|----------|
+| `outputs/tables/focused_deep_dive/` | 11 CSVs: screening summary, candidates, selected models/coefficients/residuals, LOO, robustness |
+| `outputs/figures/focused_deep_dive/` | 18 presentation-ready HTML figures (maps, scatters, fitted-actual, residuals, rankings, spotlights, heatmaps) |
+
 ### Current documentation
 
 | File | Contents |
 |------|----------|
 | `docs/distribution_share_update.md` | Raw share methodology and results |
 | `docs/specialization_update.md` | Specialization methodology and results |
+| `docs/focused_deep_dive_18_24_25_34.md` | Storyline memo, speaker notes, figure index, presentation shortlist |
 | `docs/current_canonical_state.md` | This file |
 
 ---
@@ -104,8 +126,10 @@ They are preserved for reference but are **not** the active analytical path.
 |--------|--------|---------|
 | `scripts/distribution_shares.py` | Active | Raw share engineering + screening |
 | `scripts/specialization_analysis.py` | Active | Specialization metrics + screening |
+| `scripts/focused_deep_dive.py` | Active | Multivariable modeling + diagnostics for REL_IN_25_34, REL_IN_18_24 |
 | `scripts/viz_distribution_shares.py` | Active | Raw share maps |
 | `scripts/viz_specialization.py` | Active | Specialization maps + profiles |
+| `scripts/viz_focused_deep_dive.py` | Active | 18 presentation-ready figures for deep dive |
 | `scripts/build_dataset.py` | Reference | Data pipeline (source fetching) |
 | `scripts/descriptive_a3.py` | Legacy | NET_RATE descriptive stats |
 | `scripts/spearman_a4.py` | Legacy | NET_RATE Spearman screening |
@@ -118,8 +142,11 @@ They are preserved for reference but are **not** the active analytical path.
 
 ## Recommended next steps
 
-1. **Multivariable modeling** on REL_IN_25_34 (strongest signal, adj R² = 0.39)
-   and possibly REL_IN_18_24 / REL_IN_35_54
-2. **Presentation package** synthesizing the share → specialization → correlation
-   narrative with selected maps and tables
-3. **Updated dashboard** if interactive exploration is needed for the new DVs
+1. ~~**Multivariable modeling** on REL_IN_25_34 and REL_IN_18_24~~ — **DONE**
+   (focused deep dive complete with 4 models, diagnostics, 18 figures)
+2. **Presentation package** — storyline memo and figure shortlist created in
+   `docs/focused_deep_dive_18_24_25_34.md`; slide deck assembly is the next step
+3. **Optional: REL_IN_35_54 deep dive** — moderate signal (UNINSURED, adj R² = 0.26),
+   could extend the analysis if time permits
+4. **Optional: Updated dashboard** if interactive exploration is needed for the
+   new DVs

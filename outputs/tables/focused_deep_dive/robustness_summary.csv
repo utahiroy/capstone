@@ -1,0 +1,5 @@
+model_id,dv,full_adj_r2,loo_adj_r2_min,loo_adj_r2_max,sign_flips,small_state_adj_r2,small_state_dropped,small_state_signs_stable
+M25_2IV_PRIV_AVG_PAY+COMMUTE_MED,REL_IN_25_34,0.4213,0.3717,0.5045,none,0.4538,"WY, VT, AK, ND, SD",True
+M25_3IV_PRIV_AVG_PAY+RPP+COMMUTE_MED,REL_IN_25_34,0.4328,0.3857,0.4984,none,0.4482,"WY, VT, AK, ND, SD",True
+M18_2IV_COMMUTE_MED+VACANCY_RATE,REL_IN_18_24,0.3769,0.3164,0.4263,none,0.232,"WY, VT, AK, ND, SD",True
+M18_3IV_COMMUTE_MED+VACANCY_RATE+TRANSIT_SHARE,REL_IN_18_24,0.4154,0.3558,0.4512,none,0.3097,"WY, VT, AK, ND, SD",True
